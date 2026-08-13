@@ -1,0 +1,50 @@
+# Development stack. `make dev` brings this up with hot reload.
+name: habit-tracker
+
+services:
+  app:
+    build:
+      context: .
+      target: dev
+      args:
+        # Baked in so the image (and the named volumes seeded from it) are owned
+        # by the developer running the container.
+        UID: ${HOST_UID:-1000}
+        GID: ${HOST_GID:-1000}
+    image: habit-tracker:dev
+    container_name: habit-tracker-dev
+    # Never run as root: this container writes into the bind-mounted repo
+    # (package-lock.json, .husky/_, git objects via lint-staged) and root-owned
+    # files there break the developer's own git and editor.
+    user: '${HOST_UID:-1000}:${HOST_GID:-1000}'
+    command: npm run dev
+    ports:
+      - '${APP_PORT:-3000}:3000'
+    environment:
+      NODE_ENV: development
+      # Arbitrary UIDs have no /etc/passwd entry, so point HOME at a directory
+      # the image created for them (keeps the npm cache writable).
+      HOME: /home/app
+      # Bind-mounted filesystems (WSL2, macOS) do not always emit inotify
+      # events, so make the watcher poll instead of missing changes.
+      WATCHPACK_POLLING: 'true'
+      CHOKIDAR_USEPOLLING: 'true'
+      AUTH_TRUST_HOST: 'true'
+      AUTH_URL: 'http://localhost:${APP_PORT:-3000}'
+    env_file:
+      - path: .env.local
+        required: false
+    volumes:
+      - .:/app
+      # Keep container-built artefacts off the host bind mount: node_modules is
+      # platform specific and .next is rewritten constantly.
+      - node_modules:/app/node_modules
+      - next_cache:/app/.next
+      - npm_cache:/home/app/.npm
+    stdin_open: true
+    tty: true
+
+volumes:
+  node_modules:
+  next_cache:
+  npm_cache:

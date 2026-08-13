@@ -1,0 +1,38 @@
+# Production-like stack: builds the standalone image and runs it as `node server.js`.
+# Usage: make prod  (or: docker compose -f docker-compose.prod.yml up --build -d)
+#
+# A distinct project name keeps it isolated from the dev stack — otherwise
+# tooling that execs into the running "app" service could land in this
+# container, which has no dev dependencies.
+name: habit-tracker-prod
+
+services:
+  app:
+    build:
+      context: .
+      target: runner
+      args:
+        AUTH_SECRET: ${AUTH_SECRET:-build-time-placeholder-secret}
+    image: habit-tracker:prod
+    container_name: habit-tracker-prod
+    restart: unless-stopped
+    ports:
+      - '${APP_PORT:-3000}:3000'
+    environment:
+      NODE_ENV: production
+      AUTH_TRUST_HOST: 'true'
+    env_file:
+      - path: .env.local
+        required: false
+    healthcheck:
+      test:
+        [
+          'CMD',
+          'node',
+          '-e',
+          "fetch('http://127.0.0.1:3000/api/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))",
+        ]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s

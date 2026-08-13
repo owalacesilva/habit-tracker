@@ -1,0 +1,2 @@
+./scripts/in-container.sh npm run typecheck
+./scripts/in-container.sh npm test
