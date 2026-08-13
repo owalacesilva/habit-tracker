@@ -1,0 +1,126 @@
+@import 'tailwindcss';
+
+/* ---------------------------------------------------------------------------
+ * Design tokens (Tailwind v4 is CSS-first — this block *is* the theme config).
+ * Every token below generates utilities, e.g. `--color-canvas` → `bg-canvas`,
+ * `--radius-card` → `rounded-card`, `--shadow-fab` → `shadow-fab`.
+ * Components must use these utilities instead of raw hex values.
+ * ------------------------------------------------------------------------ */
+@theme {
+  --font-sans: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+
+  /* Canvas & surfaces */
+  --color-canvas: #fbf4ee;
+  --color-surface: #ffffff;
+  --color-sand-50: #fdf9f5;
+  --color-sand-100: #f8f0e8;
+  --color-sand-200: #f1e4d8;
+  --color-sand-300: #e6d3c3;
+
+  /* Text */
+  --color-ink: #2f1f17;
+  --color-ink-muted: #8c7a6e;
+  --color-ink-soft: #b7a99e;
+
+  /* Primary action */
+  --color-brand-50: #fff4ea;
+  --color-brand-100: #ffe4cd;
+  --color-brand-200: #ffc79b;
+  --color-brand-300: #ffa866;
+  --color-brand-400: #ff8a3d;
+  --color-brand-500: #ff6b00;
+  --color-brand-600: #e85f00;
+  --color-brand-700: #bf4e00;
+
+  /* Reminder banner */
+  --color-peach: #fbd8bb;
+  --color-peach-soft: #fde7d2;
+
+  /* Habit icon tiles */
+  --color-habit-water: #f6c1a6;
+  --color-habit-meditate: #d9e9b5;
+  --color-habit-stretch: #f4cbe4;
+  --color-habit-walk: #f8d9be;
+
+  /* Progress chart */
+  --color-chart-walking: #4a2e22;
+  --color-chart-running: #c2410c;
+  --color-chart-meditation: #8faf33;
+  --color-chart-drink: #ee7fd0;
+  --color-chart-track: #f1e4d8;
+
+  --radius-card: 1.5rem;
+  --radius-sheet: 2rem;
+  --radius-pill: 9999px;
+
+  --shadow-card: 0 10px 30px -18px rgb(72 42 24 / 0.35);
+  --shadow-fab: 0 12px 24px -8px rgb(255 107 0 / 0.55);
+
+  /* Phone-width column: `max-w-app` */
+  --container-app: 30rem;
+
+  --animate-check-pop: check-pop 220ms ease-out;
+  --animate-rise-in: rise-in 260ms ease-out both;
+
+  @keyframes check-pop {
+    0% {
+      transform: scale(0.7);
+      opacity: 0.4;
+    }
+    60% {
+      transform: scale(1.15);
+      opacity: 1;
+    }
+    100% {
+      transform: scale(1);
+      opacity: 1;
+    }
+  }
+
+  @keyframes rise-in {
+    0% {
+      transform: translateY(8px);
+      opacity: 0;
+    }
+    100% {
+      transform: translateY(0);
+      opacity: 1;
+    }
+  }
+}
+
+@layer base {
+  html {
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-canvas text-ink antialiased;
+    /* Respect notches and home indicators when installed as a PWA. */
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+  }
+
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-brand-500;
+  }
+}
+
+@layer components {
+  /* The phone-sized column every screen lives in. */
+  .app-shell {
+    @apply mx-auto flex min-h-dvh w-full max-w-app flex-col;
+  }
+
+  .card {
+    @apply rounded-card bg-surface shadow-card;
+  }
+
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+}

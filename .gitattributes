@@ -1,0 +1,24 @@
+# The toolchain is Linux-only (Alpine containers) and the git hooks are shell
+# scripts. A CRLF checkout — which `core.autocrlf=true` produces on Windows and
+# WSL by default — makes them fail with "bad interpreter: sh^M", so pin LF here
+# instead of relying on every developer's git config.
+* text=auto eol=lf
+
+# Explicit for the files that break loudest when they are not LF.
+*.sh          text eol=lf
+Makefile      text eol=lf
+Dockerfile    text eol=lf
+.husky/*      text eol=lf
+*.yml         text eol=lf
+*.json        text eol=lf
+
+# Never touch binaries.
+*.png         binary
+*.ico         binary
+*.jpg         binary
+*.webp        binary
+*.woff        binary
+*.woff2       binary
+
+# Generated — keep it out of diffs and reviews.
+package-lock.json linguist-generated=true -diff
