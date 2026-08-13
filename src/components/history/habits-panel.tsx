@@ -53,7 +53,7 @@ export function HabitsPanel({ items, labels, weekdayInitials }: HabitsPanelProps
       {items.map(({ habit, streak, weeklyCompletion }) => (
         <li key={habit.id} className="card flex items-start gap-3 p-4">
           <span
-            aria-hidden
+            aria-hidden="true"
             className={cn(
               'flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-lg',
               ACCENT_CLASS[habit.accent],
@@ -63,20 +63,24 @@ export function HabitsPanel({ items, labels, weekdayInitials }: HabitsPanelProps
           </span>
 
           <div className="min-w-0 flex-1">
-            <p className="text-sm font-semibold text-balance text-ink">{habit.name}</p>
-            <p className="mt-0.5 text-xs text-ink-muted">
+            <p className="text-balance font-semibold text-ink text-sm">{habit.name}</p>
+            <p className="mt-0.5 text-ink-muted text-xs">
               {scheduleText(habit, labels, weekdayInitials)}
             </p>
 
-            <ul className="mt-2 flex flex-wrap gap-1.5 text-[11px] font-medium text-ink-muted">
+            <ul className="mt-2 flex flex-wrap gap-1.5 font-medium text-[11px] text-ink-muted">
               <li className="rounded-pill bg-sand-100 px-2.5 py-1 text-brand-600">
                 {plural(streak, labels.streakOne, labels.streakOther)}
               </li>
               <li className="rounded-pill bg-sand-100 px-2.5 py-1">
-                {format(labels.completionRate, { percentage: weeklyCompletion })}
+                {format(labels.completionRate, {
+                  percentage: weeklyCompletion,
+                })}
               </li>
               <li className="rounded-pill bg-sand-100 px-2.5 py-1">
-                {format(labels.totalCompletions, { count: habit.completedDates.length })}
+                {format(labels.totalCompletions, {
+                  count: habit.completedDates.length,
+                })}
               </li>
             </ul>
           </div>

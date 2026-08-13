@@ -33,10 +33,10 @@ export function JourneyList({ journeys, labels, action }: JourneyListProps) {
       {recommended.length > 0 && (
         <section aria-labelledby="journey-recommended" className="flex flex-col gap-3">
           <div>
-            <h2 id="journey-recommended" className="text-lg font-bold text-ink">
+            <h2 id="journey-recommended" className="font-bold text-ink text-lg">
               {labels.recommendedTitle}
             </h2>
-            <p className="mt-0.5 text-xs text-ink-muted">{labels.recommendedBody}</p>
+            <p className="mt-0.5 text-ink-muted text-xs">{labels.recommendedBody}</p>
           </div>
           {recommended.map((journey) => (
             <JourneyCard
@@ -52,7 +52,7 @@ export function JourneyList({ journeys, labels, action }: JourneyListProps) {
 
       {rest.length > 0 && (
         <section aria-labelledby="journey-all" className="flex flex-col gap-3">
-          <h2 id="journey-all" className="text-lg font-bold text-ink">
+          <h2 id="journey-all" className="font-bold text-ink text-lg">
             {labels.allTitle}
           </h2>
           {rest.map((journey) => (

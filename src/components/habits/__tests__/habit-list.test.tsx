@@ -44,7 +44,11 @@ describe('HabitList', () => {
       <HabitList
         items={[
           { habit: habit(), completed: false, streak: 3 },
-          { habit: habit({ id: 'walk', name: 'Go for a short walk' }), completed: true, streak: 1 },
+          {
+            habit: habit({ id: 'walk', name: 'Go for a short walk' }),
+            completed: true,
+            streak: 1,
+          },
         ]}
         isoDate="2025-03-13"
         labels={labels}

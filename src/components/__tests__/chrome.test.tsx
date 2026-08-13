@@ -91,11 +91,17 @@ describe('ServiceWorkerRegistration', () => {
 
   it('registers the worker at the root scope in production', () => {
     const nodeEnv = process.env.NODE_ENV
-    Object.defineProperty(process.env, 'NODE_ENV', { value: 'production', configurable: true })
+    Object.defineProperty(process.env, 'NODE_ENV', {
+      value: 'production',
+      configurable: true,
+    })
 
     render(<ServiceWorkerRegistration />)
 
     expect(register).toHaveBeenCalledWith('/sw.js', { scope: '/' })
-    Object.defineProperty(process.env, 'NODE_ENV', { value: nodeEnv, configurable: true })
+    Object.defineProperty(process.env, 'NODE_ENV', {
+      value: nodeEnv,
+      configurable: true,
+    })
   })
 })

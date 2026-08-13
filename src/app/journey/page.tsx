@@ -4,12 +4,12 @@ import { Suspense } from 'react'
 import { startJourneyAction } from '@/app/journey/actions'
 import { requireUser } from '@/auth'
 import { JourneyList, type JourneyListLabels } from '@/components/journey/journey-list'
+import { JourneyListSkeleton } from '@/components/journey/journey-list-skeleton'
 import { BottomNav } from '@/components/layout/bottom-nav'
 import { ScreenHeader } from '@/components/layout/screen-header'
-import { SkeletonList } from '@/components/ui/states'
+import { listHabits } from '@/lib/habits'
 import type { Dictionary } from '@/lib/i18n'
 import type { Locale } from '@/lib/i18n/config'
-import { listHabits } from '@/lib/habits'
 import { listEnrollments, listJourneys, recommendJourneys, toJourneyViews } from '@/lib/journeys'
 import { getI18n, getScreenSettings } from '@/lib/server-settings'
 
@@ -62,7 +62,7 @@ export default async function JourneyPage() {
       <main className="app-shell app-shell-nav gap-6 px-5 pt-8">
         <ScreenHeader title={t.journey.title} subtitle={t.journey.subtitle} />
 
-        <Suspense fallback={<SkeletonList rows={3} label={t.common.loading} />}>
+        <Suspense fallback={<JourneyListSkeleton label={t.common.loading} />}>
           <JourneyCatalogue locale={locale} t={t} />
         </Suspense>
       </main>

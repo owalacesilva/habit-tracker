@@ -12,8 +12,8 @@ export function ScreenHeader({ title, subtitle, trailing }: ScreenHeaderProps) {
   return (
     <header className="flex items-start justify-between gap-4">
       <div className="min-w-0">
-        <h1 className="text-3xl leading-tight font-bold text-balance text-ink">{title}</h1>
-        {subtitle && <p className="mt-1 text-xs text-ink-muted">{subtitle}</p>}
+        <h1 className="text-balance font-bold text-3xl text-ink leading-tight">{title}</h1>
+        {subtitle && <p className="mt-1 text-ink-muted text-xs">{subtitle}</p>}
       </div>
       {trailing && <div className="flex shrink-0 items-center gap-2">{trailing}</div>}
     </header>

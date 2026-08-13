@@ -61,18 +61,18 @@ export function ChoiceGroup<T extends string>({
             aria-checked={active}
             onClick={() => choose(option.value)}
             className={cn(
-              'flex min-h-11 min-w-[6.5rem] flex-1 flex-col items-center justify-center gap-0.5 rounded-card border px-3 py-2 text-xs font-semibold transition-colors',
+              'flex min-h-11 min-w-[6.5rem] flex-1 flex-col items-center justify-center gap-0.5 rounded-card border px-3 py-2 font-semibold text-xs transition-colors',
               active
                 ? 'border-brand-500 bg-brand-50 text-brand-700'
                 : 'border-sand-200 bg-surface text-ink-muted hover:border-brand-200 hover:text-ink',
             )}
           >
             {option.icon && (
-              <span aria-hidden className="text-base">
+              <span aria-hidden="true" className="text-base">
                 {option.icon}
               </span>
             )}
-            <span className="text-center text-balance">{option.label}</span>
+            <span className="text-balance text-center">{option.label}</span>
           </button>
         )
       })}

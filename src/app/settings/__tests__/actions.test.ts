@@ -16,7 +16,9 @@ import { THEME_COOKIE } from '@/lib/theme'
 
 const cookieStore = { set: jest.fn(), get: jest.fn() }
 
-jest.mock('next/headers', () => ({ cookies: jest.fn(async () => cookieStore) }))
+jest.mock('next/headers', () => ({
+  cookies: jest.fn(async () => cookieStore),
+}))
 jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }))
 jest.mock('@/auth', () => ({
   requireUser: jest.fn().mockResolvedValue({ id: 'test-user', name: 'Budi' }),
@@ -36,7 +38,11 @@ describe('appearance and layout preferences', () => {
     expect(cookieStore.set).toHaveBeenCalledWith(
       THEME_COOKIE,
       'dark',
-      expect.objectContaining({ path: '/', maxAge: 60 * 60 * 24 * 365, sameSite: 'lax' }),
+      expect.objectContaining({
+        path: '/',
+        maxAge: 60 * 60 * 24 * 365,
+        sameSite: 'lax',
+      }),
     )
   })
 

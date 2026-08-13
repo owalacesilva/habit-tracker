@@ -6,12 +6,21 @@ import { HabitsPanel } from '@/components/history/habits-panel'
 import { StatisticsPanel } from '@/components/history/statistics-panel'
 import { BottomNav } from '@/components/layout/bottom-nav'
 import { ScreenHeader } from '@/components/layout/screen-header'
+import { FilterChips } from '@/components/ui/filter-chips'
 import { ShareButton } from '@/components/ui/share-button'
 import { TabPanel, Tabs } from '@/components/ui/tabs'
 import { computeAchievements } from '@/lib/achievements'
 import { formatDuration, weekdayInitials, weekStrip } from '@/lib/date'
 import { currentStreak, listHabits, weeklyCompletion, weeklyProgress } from '@/lib/habits'
 import { getI18n, getScreenSettings } from '@/lib/server-settings'
+import {
+  generalStatistics,
+  habitStatistics,
+  parseStatisticsPeriod,
+  resolvePeriod,
+  STATISTICS_PERIODS,
+  type StatisticsPeriod,
+} from '@/lib/statistics'
 
 export async function generateMetadata(): Promise<Metadata> {
   const { t } = await getI18n()
@@ -32,54 +41,77 @@ const POINTS_PER_COMPLETION = 10
 export default async function HistoryPage({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string }>
+  searchParams: Promise<{ tab?: string; period?: string }>
 }) {
-  const [user, { locale, t, weekStartsOn }, { tab }] = await Promise.all([
+  const [user, { locale, t, weekStartsOn }, { tab, period }] = await Promise.all([
     requireUser(),
     getScreenSettings(),
     searchParams,
   ])
 
   const activeTab = parseHistoryTab(tab)
+  const activePeriod = parseStatisticsPeriod(period)
   const now = new Date()
   const week = weekStrip(now, weekStartsOn, locale)
   const weekDates = week.map((day) => day.date)
-  const weekIsoDates = new Set(week.map((day) => day.iso))
   const habits = listHabits(user.id)
 
-  const completionsThisWeek = habits.flatMap((habit) =>
-    habit.completedDates.filter((iso) => weekIsoDates.has(iso)),
-  ).length
+  // The filter only narrows Statistics; the other tabs always show everything.
+  const periodDays = resolvePeriod(activePeriod, habits, now, weekStartsOn)
+  const general = generalStatistics(habits, periodDays, now)
+  const habitBreakdown = habits.map((habit) => ({
+    statistics: habitStatistics(habit, periodDays, now),
+    icon: habit.icon,
+    accent: habit.accent,
+  }))
 
-  const minutesThisWeek = habits.reduce(
-    (total, habit) =>
-      total +
-      habit.completedDates.filter((iso) => weekIsoDates.has(iso)).length * habit.durationMinutes,
-    0,
-  )
+  const PERIOD_LABEL: Record<StatisticsPeriod, string> = {
+    'this-week': t.history.statistics.periodThisWeek,
+    'last-week': t.history.statistics.periodLastWeek,
+    'last-4-weeks': t.history.statistics.periodLast4Weeks,
+    'all-time': t.history.statistics.periodAllTime,
+  }
 
   const achievementCopy = t.history.achievements
 
   const panels: Record<HistoryTab, React.ReactNode> = {
     statistics: (
       <StatisticsPanel
-        // With nothing ticked this week the chart would be four empty bars —
-        // the empty state says more.
-        progress={completionsThisWeek > 0 ? weeklyProgress(user.id, weekDates) : []}
-        points={completionsThisWeek * POINTS_PER_COMPLETION}
+        general={general}
+        habits={habitBreakdown}
+        // With nothing ticked in the period the chart would be empty bars —
+        // the numbers above already say that.
+        progress={general.completed > 0 ? weeklyProgress(user.id, weekDates) : []}
+        points={general.completed * POINTS_PER_COMPLETION}
         locale={locale}
         stats={[
-          { label: t.history.statistics.completed, value: `${completionsThisWeek}` },
-          { label: t.history.statistics.habits, value: `${habits.length}` },
-          { label: t.history.statistics.time, value: formatDuration(minutesThisWeek) },
+          { label: t.history.statistics.completed, value: `${general.completed}` },
+          { label: t.history.statistics.habits, value: `${general.activeHabits}` },
+          { label: t.history.statistics.time, value: formatDuration(general.minutes) },
         ]}
         labels={{
           pointsEarned: t.history.statistics.pointsEarned,
-          forThisWeek: t.history.statistics.forThisWeek,
+          forThisWeek: PERIOD_LABEL[activePeriod],
           points: t.history.statistics.points,
           chartLabel: t.history.statistics.chartLabel,
           emptyTitle: t.history.statistics.emptyTitle,
           emptyBody: t.history.statistics.emptyBody,
+          currentStreak: t.history.statistics.currentStreak,
+          currentStreakUnit: t.history.statistics.currentStreakUnit,
+          completedHabits: t.history.statistics.completedHabits,
+          completedUnit: t.history.statistics.completedUnit,
+          completionRate: t.history.statistics.completionRate,
+          perfectDays: t.history.statistics.perfectDays,
+          perfectDaysHint: t.history.statistics.perfectDaysHint,
+          dayOne: t.common.dayOne,
+          dayOther: t.common.dayOther,
+          breakdown: {
+            title: t.history.statistics.habitBreakdown,
+            habitStreak: t.history.statistics.habitStreak,
+            habitCompleted: t.history.statistics.habitCompleted,
+            dayOne: t.common.dayOne,
+            dayOther: t.common.dayOther,
+          },
         }}
         action={
           <ShareButton
@@ -87,7 +119,10 @@ export default async function HistoryPage({
             className="w-full"
             title={t.settings.social.shareTitle}
             text={t.settings.social.shareText}
-            labels={{ copied: t.settings.social.copied, failed: t.settings.social.failed }}
+            labels={{
+              copied: t.settings.social.copied,
+              failed: t.settings.social.failed,
+            }}
           >
             {t.history.statistics.share}
           </ShareButton>
@@ -156,8 +191,16 @@ export default async function HistoryPage({
 
         <Tabs
           items={[
-            { id: 'statistics', label: t.history.tabStatistics, href: '/history?tab=statistics' },
-            { id: 'habits', label: t.history.tabHabits, href: '/history?tab=habits' },
+            {
+              id: 'statistics',
+              label: t.history.tabStatistics,
+              href: '/history?tab=statistics',
+            },
+            {
+              id: 'habits',
+              label: t.history.tabHabits,
+              href: '/history?tab=habits',
+            },
             {
               id: 'achievements',
               label: t.history.tabAchievements,
@@ -168,6 +211,18 @@ export default async function HistoryPage({
           label={t.history.tabsLabel}
           panelId="history-panel"
         />
+
+        {activeTab === 'statistics' && (
+          <FilterChips
+            label={t.history.statistics.filterLabel}
+            activeId={activePeriod}
+            items={STATISTICS_PERIODS.map((option) => ({
+              id: option,
+              label: PERIOD_LABEL[option],
+              href: `/history?tab=statistics&period=${option}`,
+            }))}
+          />
+        )}
 
         <TabPanel id="history-panel" labelledBy={`tab-${activeTab}`}>
           {panels[activeTab]}

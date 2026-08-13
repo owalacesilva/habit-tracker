@@ -13,9 +13,9 @@ import {
 import { LOCALE_COOKIE, type Locale, parseLocale } from '@/lib/i18n/config'
 import {
   isNotificationType,
+  type NotificationPreferences,
   setNotificationsEnabled,
   setNotificationType,
-  type NotificationPreferences,
 } from '@/lib/notifications'
 import { parseTheme, THEME_COOKIE, type Theme } from '@/lib/theme'
 

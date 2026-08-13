@@ -14,7 +14,7 @@ export interface SheetHeaderProps {
 export function SheetHeader({ title, closeLabel, closeHref = '/' }: SheetHeaderProps) {
   return (
     <header className="flex items-start justify-between gap-4">
-      <h1 className="text-3xl leading-tight font-bold text-balance text-ink">{title}</h1>
+      <h1 className="text-balance font-bold text-3xl text-ink leading-tight">{title}</h1>
       <Link
         href={closeHref}
         aria-label={closeLabel}

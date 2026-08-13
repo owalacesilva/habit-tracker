@@ -41,7 +41,7 @@ export function AchievementsPanel({ achievements, copy, labels }: AchievementsPa
             className={cn('card flex items-start gap-3 p-4', !achievement.unlocked && 'opacity-75')}
           >
             <span
-              aria-hidden
+              aria-hidden="true"
               className={cn(
                 'flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-lg',
                 achievement.unlocked ? 'bg-brand-100' : 'bg-sand-100 grayscale',
@@ -56,17 +56,17 @@ export function AchievementsPanel({ achievements, copy, labels }: AchievementsPa
 
             <div className="min-w-0 flex-1">
               <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
-                <p className="text-sm font-semibold text-balance text-ink">{title}</p>
+                <p className="text-balance font-semibold text-ink text-sm">{title}</p>
                 <span
                   className={cn(
-                    'rounded-pill px-2 py-0.5 text-[10px] font-semibold',
+                    'rounded-pill px-2 py-0.5 font-semibold text-[10px]',
                     achievement.unlocked ? 'bg-brand-500 text-white' : 'bg-sand-100 text-ink-muted',
                   )}
                 >
                   {achievement.unlocked ? labels.unlocked : labels.locked}
                 </span>
               </div>
-              <p className="mt-1 text-xs leading-relaxed text-ink-muted">{body}</p>
+              <p className="mt-1 text-ink-muted text-xs leading-relaxed">{body}</p>
 
               {!achievement.unlocked && (
                 <div className="mt-2 flex items-center gap-2">
@@ -83,7 +83,7 @@ export function AchievementsPanel({ achievements, copy, labels }: AchievementsPa
                       style={{ width: `${percentage}%` }}
                     />
                   </div>
-                  <span className="shrink-0 text-[11px] font-medium text-ink-muted">
+                  <span className="shrink-0 font-medium text-[11px] text-ink-muted">
                     {format(labels.progress, {
                       current: achievement.current,
                       target: achievement.target,

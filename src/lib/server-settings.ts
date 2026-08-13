@@ -2,14 +2,14 @@ import { cookies } from 'next/headers'
 
 import {
   DEFAULT_WEEK_START,
+  type GeneralSettings,
   parseReduceMotion,
   parseWeekStart,
   REDUCE_MOTION_COOKIE,
   WEEK_START_COOKIE,
   weekStartIndex,
-  type GeneralSettings,
 } from '@/lib/general-settings'
-import { getDictionary, type Dictionary } from '@/lib/i18n'
+import { type Dictionary, getDictionary } from '@/lib/i18n'
 import { LOCALE_COOKIE, type Locale, parseLocale } from '@/lib/i18n/config'
 import { parseTheme, THEME_COOKIE, type Theme } from '@/lib/theme'
 import type { Weekday } from '@/types/habit'

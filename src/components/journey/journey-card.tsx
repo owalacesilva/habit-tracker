@@ -51,7 +51,7 @@ export function JourneyCard({ journey, labels, action, highlighted = false }: Jo
     >
       <div className="flex items-start gap-3">
         <span
-          aria-hidden
+          aria-hidden="true"
           className={cn(
             'flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl text-xl',
             ACCENT_CLASS[journey.accent],
@@ -62,20 +62,20 @@ export function JourneyCard({ journey, labels, action, highlighted = false }: Jo
 
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-start justify-between gap-x-2 gap-y-1">
-            <h3 className="text-sm font-bold text-balance text-ink">{journey.title}</h3>
+            <h3 className="text-balance font-bold text-ink text-sm">{journey.title}</h3>
             {journey.recommended && (
-              <span className="rounded-pill bg-brand-500 px-2 py-0.5 text-[10px] font-semibold text-white">
+              <span className="rounded-pill bg-brand-500 px-2 py-0.5 font-semibold text-[10px] text-white">
                 {labels.recommendedBadge}
               </span>
             )}
           </div>
-          <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-ink-muted">
+          <p className="mt-1 line-clamp-2 text-ink-muted text-xs leading-relaxed">
             {journey.description}
           </p>
         </div>
       </div>
 
-      <ul className="flex flex-wrap items-center gap-1.5 text-[11px] font-medium text-ink-muted">
+      <ul className="flex flex-wrap items-center gap-1.5 font-medium text-[11px] text-ink-muted">
         <li className="rounded-pill bg-sand-100 px-2.5 py-1">
           {format(labels.durationDays, { count: journey.durationDays })}
         </li>

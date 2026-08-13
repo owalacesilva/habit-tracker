@@ -62,15 +62,24 @@ describe('computeAchievements', () => {
   })
 
   it('never reports more progress than the target', () => {
-    const many = habit({ completedDates: Array.from({ length: 80 }, (_, i) => iso(i)) })
+    const many = habit({
+      completedDates: Array.from({ length: 80 }, (_, i) => iso(i)),
+    })
 
-    expect(byId([many], 'halfCentury')).toMatchObject({ current: 50, target: 50, unlocked: true })
+    expect(byId([many], 'halfCentury')).toMatchObject({
+      current: 50,
+      target: 50,
+      unlocked: true,
+    })
   })
 
   it('counts habits for the routine builder', () => {
     const habits = [habit({ id: 'a' }), habit({ id: 'b' }), habit({ id: 'c' })]
 
-    expect(byId(habits, 'routineBuilder')).toMatchObject({ current: 3, unlocked: false })
+    expect(byId(habits, 'routineBuilder')).toMatchObject({
+      current: 3,
+      unlocked: false,
+    })
     expect(byId([...habits, habit({ id: 'd' })], 'routineBuilder').unlocked).toBe(true)
   })
 })

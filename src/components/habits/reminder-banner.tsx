@@ -14,8 +14,8 @@ export function ReminderBanner({ labels }: ReminderBannerProps) {
   return (
     <section className="relative overflow-hidden rounded-card bg-peach px-5 py-4">
       <div className="max-w-[62%]">
-        <h2 className="text-base font-bold text-ink">{labels.title}</h2>
-        <p className="mt-1 text-xs leading-relaxed text-ink/75">{labels.body}</p>
+        <h2 className="font-bold text-base text-ink">{labels.title}</h2>
+        <p className="mt-1 text-ink/75 text-xs leading-relaxed">{labels.body}</p>
         <Button variant="dark" size="sm" className="mt-3">
           {labels.cta}
         </Button>

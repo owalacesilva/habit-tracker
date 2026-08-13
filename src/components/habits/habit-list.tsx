@@ -24,8 +24,8 @@ export function HabitList({ items, isoDate, labels, onToggle }: HabitListProps) 
     <ol className="relative space-y-3">
       {/* Dotted timeline linking the check circles. */}
       <span
-        aria-hidden
-        className="absolute top-6 bottom-6 left-[11px] border-l border-dashed border-sand-300"
+        aria-hidden="true"
+        className="absolute top-6 bottom-6 left-[11px] border-sand-300 border-l border-dashed"
       />
       {items.map(({ habit, completed, streak }) => (
         <HabitRow

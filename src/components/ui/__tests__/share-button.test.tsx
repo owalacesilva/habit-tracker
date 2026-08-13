@@ -4,7 +4,10 @@ import userEvent from '@testing-library/user-event'
 import { ShareButton } from '@/components/ui/share-button'
 import en from '@/lib/i18n/dictionaries/en'
 
-const labels = { copied: en.settings.social.copied, failed: en.settings.social.failed }
+const labels = {
+  copied: en.settings.social.copied,
+  failed: en.settings.social.failed,
+}
 
 function renderButton() {
   render(
@@ -30,7 +33,9 @@ describe('ShareButton', () => {
   afterEach(() => {
     // @ts-expect-error — remove the stubs between tests.
     delete navigator.share
-    stubNavigator({ clipboard: undefined as unknown as Navigator['clipboard'] })
+    stubNavigator({
+      clipboard: undefined as unknown as Navigator['clipboard'],
+    })
   })
 
   it('uses the platform share sheet when available', async () => {
@@ -49,7 +54,9 @@ describe('ShareButton', () => {
 
   it('falls back to the clipboard where sharing is unavailable', async () => {
     const writeText = jest.fn().mockResolvedValue(undefined)
-    stubNavigator({ clipboard: { writeText } as unknown as Navigator['clipboard'] })
+    stubNavigator({
+      clipboard: { writeText } as unknown as Navigator['clipboard'],
+    })
 
     await userEvent.click(renderButton())
 

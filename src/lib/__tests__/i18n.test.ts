@@ -35,7 +35,9 @@ describe('dictionaries', () => {
   })
 
   it('every locale has a label for the picker', () => {
-    LOCALES.forEach((locale) => expect(LOCALE_LABELS[locale]).toBeTruthy())
+    LOCALES.forEach((locale) => {
+      expect(LOCALE_LABELS[locale]).toBeTruthy()
+    })
   })
 
   it('keeps the placeholders of a template intact across languages', () => {

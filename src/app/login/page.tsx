@@ -17,11 +17,11 @@ export default async function LoginPage() {
   return (
     <main className="app-shell justify-center gap-8 px-5 py-10">
       <header className="text-center">
-        <span aria-hidden className="text-4xl">
+        <span aria-hidden="true" className="text-4xl">
           🌱
         </span>
-        <h1 className="mt-4 text-3xl leading-tight font-bold text-ink">{t.login.title}</h1>
-        <p className="mt-2 text-sm text-ink-muted">{t.login.subtitle}</p>
+        <h1 className="mt-4 font-bold text-3xl text-ink leading-tight">{t.login.title}</h1>
+        <p className="mt-2 text-ink-muted text-sm">{t.login.subtitle}</p>
       </header>
 
       <LoginForm
@@ -35,7 +35,7 @@ export default async function LoginPage() {
         }}
       />
 
-      <p className="rounded-card bg-sand-100 px-4 py-3 text-center text-xs text-ink-muted">
+      <p className="rounded-card bg-sand-100 px-4 py-3 text-center text-ink-muted text-xs">
         {t.login.demoHint} <span className="font-medium text-ink">{demoEmail}</span> /{' '}
         <span className="font-medium text-ink">{demoPassword}</span>
       </p>

@@ -65,7 +65,7 @@ export function BottomNav({ labels }: BottomNavProps) {
               )}
             >
               <Icon className="h-5 w-5 shrink-0" />
-              <span className="text-[11px] leading-tight font-semibold">{labels[key]}</span>
+              <span className="font-semibold text-[11px] leading-tight">{labels[key]}</span>
             </Link>
           )
         })}

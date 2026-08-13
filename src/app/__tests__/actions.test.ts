@@ -1,6 +1,6 @@
 import { createHabitAction, toggleHabitAction } from '@/app/actions'
-import { __resetStore, isCompletedOn, listHabits } from '@/lib/habits'
 import { parseISODate } from '@/lib/date'
+import { __resetStore, isCompletedOn, listHabits } from '@/lib/habits'
 
 jest.mock('@/auth', () => ({
   requireUser: jest.fn().mockResolvedValue({ id: 'test-user', name: 'Budi' }),
@@ -15,7 +15,7 @@ jest.mock('next/navigation', () => ({
 
 function formData(entries: Array<[string, string]>) {
   const data = new FormData()
-  entries.forEach(([key, value]) => data.append(key, value))
+  for (const [key, value] of entries) data.append(key, value)
   return data
 }
 

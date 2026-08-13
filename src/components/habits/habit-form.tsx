@@ -46,6 +46,9 @@ function SubmitButton({ save, saving }: { save: string; saving: string }) {
 }
 
 export function HabitForm({ action, labels, weekdayInitials }: HabitFormProps) {
+  // The weekday index is the identity here, so name it up front rather than
+  // keying a list on its position.
+  const weekdays = weekdayInitials.map((initial, index) => ({ day: index, initial }))
   const [state, formAction] = useActionState(action, {} as HabitFormState)
   const [repeatDays, setRepeatDays] = useState<number[]>(ALL_DAYS)
   const [goalEnabled, setGoalEnabled] = useState(false)
@@ -69,7 +72,7 @@ export function HabitForm({ action, labels, weekdayInitials }: HabitFormProps) {
 
       <section>
         <div className="mb-2 flex items-center justify-between gap-3">
-          <span className="text-sm font-medium text-ink">{labels.goalLabel}</span>
+          <span className="font-medium text-ink text-sm">{labels.goalLabel}</span>
           <CheckBox name="goalEnabled" label={labels.goalLabel} onCheckedChange={setGoalEnabled} />
         </div>
         <div className="grid grid-cols-2 gap-3">
@@ -88,7 +91,7 @@ export function HabitForm({ action, labels, weekdayInitials }: HabitFormProps) {
               defaultValue="10"
               className={cn(
                 'h-14 w-full appearance-none rounded-card border border-sand-200 bg-surface px-4 pr-10',
-                'text-sm text-ink focus:border-brand-300 focus:outline-none disabled:text-ink-soft',
+                'text-ink text-sm focus:border-brand-300 focus:outline-none disabled:text-ink-soft',
               )}
             >
               {[5, 10, 15, 20, 30, 45, 60].map((minutes) => (
@@ -104,7 +107,7 @@ export function HabitForm({ action, labels, weekdayInitials }: HabitFormProps) {
 
       <section>
         <div className="mb-3 flex items-center justify-between gap-3">
-          <span className="text-sm font-medium text-ink">{labels.repeatLabel}</span>
+          <span className="font-medium text-ink text-sm">{labels.repeatLabel}</span>
           <CheckBox
             name="repeatAll"
             label={labels.repeatEveryDay}
@@ -113,18 +116,18 @@ export function HabitForm({ action, labels, weekdayInitials }: HabitFormProps) {
           />
         </div>
         <div className="flex justify-between gap-1">
-          {weekdayInitials.map((initial, day) => {
+          {weekdays.map(({ day, initial }) => {
             const active = repeatDays.includes(day)
             return (
               <button
-                key={`${initial}-${day}`}
+                key={day}
                 type="button"
                 role="checkbox"
                 aria-checked={active}
                 aria-label={format(labels.repeatOnDay, { day: day + 1 })}
                 onClick={() => toggleDay(day)}
                 className={cn(
-                  'h-11 w-11 rounded-full text-sm font-semibold transition-colors',
+                  'h-11 w-11 rounded-full font-semibold text-sm transition-colors',
                   active
                     ? 'bg-ink text-canvas'
                     : 'border border-sand-200 bg-surface text-ink hover:border-brand-200',
@@ -141,7 +144,7 @@ export function HabitForm({ action, labels, weekdayInitials }: HabitFormProps) {
       </section>
 
       <section className="flex items-center justify-between gap-3">
-        <span className="text-sm font-medium text-ink">{labels.remindersLabel}</span>
+        <span className="font-medium text-ink text-sm">{labels.remindersLabel}</span>
         <Switch name="remindersEnabled" label={labels.remindersLabel} defaultChecked />
       </section>
 

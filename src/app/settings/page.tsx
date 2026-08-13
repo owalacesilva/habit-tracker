@@ -31,7 +31,11 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 export const dynamic = 'force-dynamic'
 
-const THEME_ICONS: Record<Theme, string> = { system: '🖥️', light: '☀️', dark: '🌙' }
+const THEME_ICONS: Record<Theme, string> = {
+  system: '🖥️',
+  light: '☀️',
+  dark: '🌙',
+}
 
 export default async function SettingsPage() {
   const [user, { locale, t, theme, general }] = await Promise.all([
@@ -78,7 +82,10 @@ export default async function SettingsPage() {
               label={t.settings.language.title}
               value={locale}
               onSelect={setLocaleAction}
-              options={LOCALES.map((option) => ({ value: option, label: LOCALE_LABELS[option] }))}
+              options={LOCALES.map((option) => ({
+                value: option,
+                label: LOCALE_LABELS[option],
+              }))}
             />
           </SettingsRow>
         </SettingsSection>
@@ -122,7 +129,10 @@ export default async function SettingsPage() {
               className="w-full border border-sand-200 shadow-none"
               title={t.settings.social.shareTitle}
               text={t.settings.social.shareText}
-              labels={{ copied: t.settings.social.copied, failed: t.settings.social.failed }}
+              labels={{
+                copied: t.settings.social.copied,
+                failed: t.settings.social.failed,
+              }}
             >
               {t.settings.social.share}
             </ShareButton>
@@ -149,7 +159,7 @@ export default async function SettingsPage() {
             description={t.settings.feedback.body}
             href={feedbackHref}
             control={
-              <span className="text-xs font-semibold text-brand-600">
+              <span className="font-semibold text-brand-600 text-xs">
                 {t.settings.feedback.action}
               </span>
             }

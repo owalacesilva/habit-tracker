@@ -20,6 +20,9 @@ and Jest, and running **entirely inside Docker**.
 - [Theming](#theming)
 - [Internationalization](#internationalization)
 - [Settings and persistence](#settings-and-persistence)
+- [Statistics](#statistics)
+- [Tooling](#tooling)
+- [Testing personas](#testing-personas)
 - [PWA](#pwa)
 - [Authentication](#authentication)
 - [Testing](#testing)
@@ -55,26 +58,27 @@ Every list screen handles **loading** (skeletons that mirror the final layout),
 
 ## Stack
 
-| Concern       | Choice                                                           |
-| ------------- | ---------------------------------------------------------------- |
-| Framework     | Next.js 16 (App Router, React 19, Server Actions)                |
-| Language      | TypeScript 5.9 (strict)                                          |
-| Styling       | Tailwind CSS 4 (CSS-first tokens in `src/app/globals.css`)       |
-| Auth          | NextAuth v5 (JWT sessions, credentials + optional GitHub)        |
-| Validation    | zod 4                                                            |
-| i18n          | Typed dictionaries (en, pt-BR, es) — no runtime dependency       |
-| Theming       | CSS `light-dark()` tokens, persisted in a cookie                 |
-| PWA           | Hand-written service worker + web app manifest                   |
-| Tests         | Jest 30 + Testing Library (jsdom)                                |
-| Quality gates | ESLint 9 (flat config), Prettier, Husky, lint-staged, commitlint |
-| Runtime       | Docker (Node 24 Alpine, multi-stage) + docker compose + Make     |
+| Concern       | Choice                                                                         |
+| ------------- | ------------------------------------------------------------------------------ |
+| Framework     | Next.js 16 (App Router, React 19, Server Actions)                              |
+| Language      | TypeScript 5.9 (strict)                                                        |
+| Styling       | Tailwind CSS 4 (CSS-first tokens in `src/app/globals.css`)                     |
+| Auth          | NextAuth v5 (JWT sessions, credentials + optional GitHub)                      |
+| Validation    | zod 4                                                                          |
+| i18n          | Typed dictionaries (en, pt-BR, es) — no runtime dependency                     |
+| Theming       | CSS `light-dark()` tokens, persisted in a cookie                               |
+| PWA           | Hand-written service worker + web app manifest                                 |
+| Skeletons     | react-loading-skeleton, themed from the design tokens                          |
+| Tests         | Jest 30 + Testing Library (jsdom)                                              |
+| Quality gates | Biome 2 (format + lint), ESLint 9 (Next rules), Husky, lint-staged, commitlint |
+| Runtime       | Docker (Node 24 Alpine, multi-stage) + docker compose + Make                   |
 
 ---
 
 ## Quick start
 
 ```bash
-make env        # create .env.local from .env.example
+make env        # create .env.local from .env-example
 make secret     # print an AUTH_SECRET — paste it into .env.local
 make install    # install dependencies inside the container (creates package-lock.json)
 make dev        # http://localhost:3000
@@ -98,7 +102,7 @@ Later runs are cached.
 
 | Target             | Description                                            |
 | ------------------ | ------------------------------------------------------ |
-| `make env`         | Create `.env.local` from `.env.example`                |
+| `make env`         | Create `.env.local` from `.env-example`                |
 | `make secret`      | Generate a random `AUTH_SECRET`                        |
 | `make install`     | `npm install` inside the container                     |
 | `make add PKG="x"` | Add a dependency (`DEV=1` for a devDependency)         |
@@ -123,7 +127,7 @@ Later runs are cached.
 
 ## Environment variables
 
-Copy `.env.example` → `.env.local` (git-ignored) with `make env`.
+Copy `.env-example` → `.env.local` (git-ignored) with `make env`.
 
 | Variable                                  | Required | Purpose                                             |
 | ----------------------------------------- | -------- | --------------------------------------------------- |
@@ -135,6 +139,7 @@ Copy `.env.example` → `.env.local` (git-ignored) with `make env`.
 | `APP_PORT`                                | no       | Host port to publish (default `3000`)               |
 | `NEXT_PUBLIC_APP_STORE_URL`               | no       | Store listing opened by "Rate the app"              |
 | `NEXT_PUBLIC_FEEDBACK_EMAIL`              | no       | Recipient of "Send feedback"                        |
+| `MOCK_PERSONA`                            | no       | Fixture data for manual testing (see below)         |
 
 ---
 
@@ -284,6 +289,81 @@ listing from `NEXT_PUBLIC_APP_STORE_URL` (and explains itself when unset), and
 
 ---
 
+## Statistics
+
+The Statistics tab reports, for the selected period:
+
+| Metric              | Meaning                                                                    |
+| ------------------- | -------------------------------------------------------------------------- |
+| **Current streak**  | Consecutive days (up to today, or yesterday) with at least one habit done  |
+| **Completed**       | Completions, against the number of days habits were actually due           |
+| **Completion rate** | `completed / due`, so a habit scheduled three days a week is judged fairly |
+| **Perfect days**    | Days where _every_ habit that was due got done                             |
+
+Below the headline tiles, each habit gets its own row with its streak, completions and
+rate, so a good average cannot hide one habit that never happens.
+
+A period filter (`?period=this-week` · `last-week` · `last-4-weeks` · `all-time`) narrows
+all of it. Two rules keep the numbers honest:
+
+- a period **never runs past today**, so days that have not happened yet are not counted
+  as missed — otherwise the rate would fall every morning;
+- **streaks ignore the filter**, because a streak is a fact about now, not about a window.
+
+`all-time` starts at the first recorded completion. Everything lives in
+`src/lib/statistics.ts` and is computed over an explicit list of days, so a new period is
+a new range, not a new code path.
+
+---
+
+## Tooling
+
+**Biome** owns formatting and linting for JS/TS/JSX/JSON/CSS, including Tailwind class
+sorting (`useSortedClasses`) and import ordering — one fast binary instead of Prettier plus
+a stack of ESLint plugins. Two tools stay alongside it:
+
+| Tool     | Scope                                                                        |
+| -------- | ---------------------------------------------------------------------------- |
+| Biome    | Format + lint + import sort for `.ts/.tsx/.js/.json/.css`                    |
+| ESLint   | `eslint-config-next` only — the Next.js and React Compiler rules Biome lacks |
+| Prettier | Markdown only, which Biome cannot format yet                                 |
+
+```bash
+make lint        # biome check + eslint
+make lint-fix    # biome check --write + eslint --fix
+make format      # biome format --write + prettier for Markdown
+```
+
+`biome.json` is configured to match the existing style (single quotes, no semicolons,
+100 columns) so adopting it produced no stylistic churn. Note that Biome silently ignores
+`biome.json` if it contains `//` comments — keep configuration explanations out of it.
+
+---
+
+## Testing personas
+
+Every screen behaves differently depending on how much history exists, and the empty
+account is the easiest state to forget. `MOCK_PERSONA` seeds the demo user with a known
+history so all of them can be exercised:
+
+| Persona   | Habits | History  | Adherence | Good for                                         |
+| --------- | ------ | -------- | --------- | ------------------------------------------------ |
+| `demo`    | 5      | today    | —         | The default: a routine mid-way through today     |
+| `empty`   | 0      | —        | —         | Empty states on every screen                     |
+| `starter` | 2      | 5 days   | 50%       | A new account, achievements still locked         |
+| `regular` | 4      | 5 weeks  | 70%       | The typical case                                 |
+| `power`   | 6      | 12 weeks | 92%       | Long streaks, unlocked achievements, full charts |
+
+```bash
+MOCK_PERSONA=power make dev
+```
+
+The generator is seeded, so a persona always produces exactly the same data — a bug found
+while testing reproduces. Fixtures live in `src/lib/mocks/personas.ts`; production code
+never depends on them beyond the default seed.
+
+---
+
 ## PWA
 
 - `public/manifest.webmanifest` — standalone display, portrait, theme `#FBF4EE`, app
@@ -331,11 +411,11 @@ make test-ci     # coverage, enforces jest.config.ts thresholds
 ```
 
 Jest runs through `next/jest` and tests live in `__tests__/` folders next to the code —
-245 tests covering:
+289 tests covering:
 
-- **domain logic** — date maths and week-start handling, streaks, weekly completion,
-  journey recommendations and progress, achievements, notification preferences,
-  scrypt password hashing;
+- **domain logic** — date maths and week-start handling, streaks, completion rates,
+  perfect days and period ranges, journey recommendations and progress, achievements,
+  notification preferences, scrypt password hashing, and the testing personas;
 - **i18n** — key and placeholder parity across every language, locale negotiation,
   interpolation and pluralisation;
 - **server actions** — habit creation, journey enrolment, every preference write

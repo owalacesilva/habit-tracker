@@ -58,6 +58,12 @@
   --color-chart-drink-on: light-dark(#ffffff, #3d0c2c);
   --color-chart-track: light-dark(#f1e4d8, #2c241d);
 
+  /* Loading placeholders. The highlight is deliberately not a sand step: the
+     scale inverts between themes, so reusing one would sweep a dark smear
+     across dark mode instead of a light shimmer. */
+  --color-skeleton: light-dark(#efe2d6, #2b231c);
+  --color-skeleton-highlight: light-dark(#fbf6f1, #3d332a);
+
   --radius-card: 1.5rem;
   --radius-sheet: 2rem;
   --radius-pill: 9999px;
@@ -103,6 +109,12 @@
      attribute (the "system" choice) the OS preference decides. */
   :root {
     color-scheme: light dark;
+
+    /* Fallback for react-loading-skeleton. The component passes these tokens
+       inline as well, because the library's own stylesheet sets a grey default
+       on its class, which would beat anything declared here. */
+    --base-color: var(--color-skeleton);
+    --highlight-color: var(--color-skeleton-highlight);
   }
 
   [data-theme='light'] {
@@ -133,19 +145,19 @@
     *,
     *::before,
     *::after {
-      animation-duration: 0.01ms !important;
-      animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
-      scroll-behavior: auto !important;
+      animation-duration: 0.01ms;
+      animation-iteration-count: 1;
+      transition-duration: 0.01ms;
+      scroll-behavior: auto;
     }
   }
 
   [data-reduce-motion='true'] *,
   [data-reduce-motion='true'] *::before,
   [data-reduce-motion='true'] *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
   }
 }
 

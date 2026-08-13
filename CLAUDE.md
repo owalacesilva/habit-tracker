@@ -23,6 +23,9 @@ make ci             # lint + typecheck + tests, like CI runs it
 make doctor         # diagnose hooks / docker / file ownership
 ```
 
+`MOCK_PERSONA=power make dev` seeds fixture history for manual testing (see
+`src/lib/mocks/personas.ts`).
+
 If a command is missing, add a `make` target that shells into the container — do not
 document a bare `npm` command in any file.
 
@@ -167,7 +170,45 @@ generous rounding.
 
 ---
 
-## 8. PWA
+## 8. Tooling ownership
+
+- **Biome** formats and lints `.ts/.tsx/.js/.json/.css`, sorts imports and sorts Tailwind
+  classes. Run `make lint-fix`; never hand-format.
+- **ESLint** is kept _only_ for `eslint-config-next` (Next.js + React Compiler rules).
+  Do not add stylistic rules there — they would fight Biome.
+- **Prettier** is Markdown-only. Do not re-add `prettier-plugin-tailwindcss`.
+- `biome.json` must contain **no `//` comments**: Biome silently falls back to its default
+  style (tabs, double quotes) if it cannot parse the file, which silently reformats the
+  whole repository. Explain rules here instead.
+- Suppress a rule only with a reason (`// biome-ignore lint/x: why`), and prefer changing
+  the code — the a11y and correctness rules have already caught real bugs.
+
+---
+
+## 9. Statistics
+
+- All metrics live in `src/lib/statistics.ts` and are computed over an explicit list of
+  days, so periods are data, not branches.
+- A period **never extends past today**: counting future days as due makes the completion
+  rate fall every morning.
+- Rates are always `completed / scheduled`, never `completed / days`, so a habit due three
+  times a week is not punished for the other four.
+- Streaks are deliberately independent of the selected period.
+
+---
+
+## 10. Fixtures
+
+- Manual-testing data lives in `src/lib/mocks/personas.ts` and is selected with
+  `MOCK_PERSONA`. The default persona is `demo` — changing it would rewrite what every
+  test and screenshot shows.
+- Generators must stay **seeded and deterministic**, so a bug found while testing can be
+  reproduced.
+- Fixtures may be imported by the seed function and by tests, never by a component.
+
+---
+
+## 11. PWA
 
 - `public/sw.js` is hand-written — no plugin. Bump `CACHE_VERSION` whenever the offline
   shell changes, otherwise clients keep the old cache.
@@ -180,7 +221,7 @@ generous rounding.
 
 ---
 
-## 9. Testing
+## 12. Testing
 
 - Jest + Testing Library, tests colocated in `__tests__/` next to the code.
 - Test **behaviour through the DOM** (roles, labels, text), not implementation details.
@@ -193,7 +234,7 @@ generous rounding.
 
 ---
 
-## 10. Git workflow
+## 13. Git workflow
 
 - **Conventional Commits** (`feat:`, `fix:`, `docs:`, `chore:` …) — enforced by commitlint.
 - Hooks (installed by `make install`, or explicitly with `make hooks`):
@@ -208,7 +249,7 @@ generous rounding.
 
 ---
 
-## 11. Definition of done
+## 14. Definition of done
 
 1. `make ci` passes (lint + typecheck + tests).
 2. New behaviour has tests.

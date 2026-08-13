@@ -27,34 +27,139 @@ function habit(overrides: Partial<Habit> = {}): Habit {
 describe('StatisticsPanel', () => {
   const labels = {
     pointsEarned: en.history.statistics.pointsEarned,
-    forThisWeek: en.history.statistics.forThisWeek,
+    forThisWeek: en.history.statistics.periodThisWeek,
     points: en.history.statistics.points,
     chartLabel: en.history.statistics.chartLabel,
     emptyTitle: en.history.statistics.emptyTitle,
     emptyBody: en.history.statistics.emptyBody,
+    currentStreak: en.history.statistics.currentStreak,
+    currentStreakUnit: en.history.statistics.currentStreakUnit,
+    completedHabits: en.history.statistics.completedHabits,
+    completedUnit: en.history.statistics.completedUnit,
+    completionRate: en.history.statistics.completionRate,
+    perfectDays: en.history.statistics.perfectDays,
+    perfectDaysHint: en.history.statistics.perfectDaysHint,
+    dayOne: en.common.dayOne,
+    dayOther: en.common.dayOther,
+    breakdown: {
+      title: en.history.statistics.habitBreakdown,
+      habitStreak: en.history.statistics.habitStreak,
+      habitCompleted: en.history.statistics.habitCompleted,
+      dayOne: en.common.dayOne,
+      dayOther: en.common.dayOther,
+    },
   }
 
-  it('shows the week once there is something to show', () => {
+  const general = {
+    currentStreak: 5,
+    completed: 12,
+    scheduled: 20,
+    completionRate: 60,
+    perfectDays: 3,
+    activeHabits: 4,
+    minutes: 145,
+    days: 7,
+  }
+
+  const breakdown = [
+    {
+      statistics: {
+        habitId: 'water',
+        name: 'Drink a glass of water',
+        currentStreak: 5,
+        completed: 6,
+        scheduled: 7,
+        completionRate: 86,
+        minutes: 30,
+      },
+      icon: '🥤',
+      accent: 'water' as const,
+    },
+  ]
+
+  it('leads with the general statistics', () => {
     render(
       <StatisticsPanel
+        general={general}
+        habits={breakdown}
         progress={[{ label: 'Water', percentage: 40, tone: 'walking' }]}
         points={120}
         stats={[{ label: en.history.statistics.completed, value: '12' }]}
         labels={labels}
-        action={<button>{en.history.statistics.share}</button>}
       />,
     )
 
-    expect(screen.getByText('120')).toBeInTheDocument()
-    expect(screen.getByRole('img', { name: /water/i })).toBeInTheDocument()
-    expect(screen.getByRole('button', { name: en.history.statistics.share })).toBeInTheDocument()
+    expect(screen.getByText(en.history.statistics.currentStreak)).toBeInTheDocument()
+    expect(screen.getByText('5')).toBeInTheDocument()
+    expect(screen.getByText('60%')).toBeInTheDocument()
+    expect(screen.getByText(en.history.statistics.perfectDays)).toBeInTheDocument()
+    expect(screen.getByText('3')).toBeInTheDocument()
   })
 
-  it('explains an empty week instead of drawing empty bars', () => {
-    render(<StatisticsPanel progress={[]} points={0} stats={[]} labels={labels} />)
+  it('breaks the period down per habit', () => {
+    render(
+      <StatisticsPanel
+        general={general}
+        habits={breakdown}
+        progress={[]}
+        points={0}
+        stats={[]}
+        labels={labels}
+      />,
+    )
+
+    expect(screen.getByText(en.history.statistics.habitBreakdown)).toBeInTheDocument()
+    expect(screen.getByText('Drink a glass of water')).toBeInTheDocument()
+    expect(screen.getByText('86%')).toBeInTheDocument()
+    expect(screen.getByText(/Streak 5 days · 6\/7 done/)).toBeInTheDocument()
+  })
+
+  it('hides the chart when nothing was completed', () => {
+    render(
+      <StatisticsPanel
+        general={{ ...general, completed: 0 }}
+        habits={breakdown}
+        progress={[]}
+        points={0}
+        stats={[]}
+        labels={labels}
+      />,
+    )
+
+    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    expect(screen.getByText(en.history.statistics.currentStreak)).toBeInTheDocument()
+  })
+
+  it('explains a period where nothing was ever due', () => {
+    render(
+      <StatisticsPanel
+        general={{ ...general, scheduled: 0, completed: 0 }}
+        habits={[]}
+        progress={[]}
+        points={0}
+        stats={[]}
+        labels={labels}
+      />,
+    )
 
     expect(screen.getByText(en.history.statistics.emptyTitle)).toBeInTheDocument()
-    expect(screen.queryByRole('img')).not.toBeInTheDocument()
+    expect(screen.queryByText(en.history.statistics.habitBreakdown)).not.toBeInTheDocument()
+  })
+
+  it('renders the share action it is given', () => {
+    render(
+      <StatisticsPanel
+        general={general}
+        habits={breakdown}
+        progress={[]}
+        points={120}
+        stats={[]}
+        labels={labels}
+        action={<button type="button">{en.history.statistics.share}</button>}
+      />,
+    )
+
+    expect(screen.getByRole('button', { name: en.history.statistics.share })).toBeInTheDocument()
   })
 })
 
@@ -88,7 +193,13 @@ describe('HabitsPanel', () => {
   it('spells out a partial schedule', () => {
     render(
       <HabitsPanel
-        items={[{ habit: habit({ repeatDays: [0, 2, 4] }), streak: 0, weeklyCompletion: 0 }]}
+        items={[
+          {
+            habit: habit({ repeatDays: [0, 2, 4] }),
+            streak: 0,
+            weeklyCompletion: 0,
+          },
+        ]}
         labels={labels}
         weekdayInitials={weekdayInitials('en')}
       />,

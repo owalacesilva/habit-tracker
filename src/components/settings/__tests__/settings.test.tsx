@@ -6,9 +6,9 @@ import { NotificationSettings } from '@/components/settings/notification-setting
 import { PreferenceSwitch } from '@/components/settings/preference-switch'
 import { RateAppButton } from '@/components/settings/rate-app-button'
 import { SettingsRow, SettingsSection } from '@/components/settings/settings-section'
-import { defaultPreferences } from '@/lib/notifications'
-import en from '@/lib/i18n/dictionaries/en'
 import { LOCALE_LABELS, LOCALES } from '@/lib/i18n/config'
+import en from '@/lib/i18n/dictionaries/en'
+import { defaultPreferences } from '@/lib/notifications'
 import { THEMES } from '@/lib/theme'
 
 describe('SettingsSection', () => {
@@ -24,7 +24,9 @@ describe('SettingsSection', () => {
       </SettingsSection>,
     )
 
-    const section = screen.getByRole('region', { name: en.settings.appearance.title })
+    const section = screen.getByRole('region', {
+      name: en.settings.appearance.title,
+    })
     expect(within(section).getByText('Row one')).toBeInTheDocument()
     expect(within(section).getByText('Control')).toBeInTheDocument()
     expect(screen.getByText(en.settings.appearance.description)).toBeInTheDocument()
@@ -33,7 +35,9 @@ describe('SettingsSection', () => {
   it('renders a row as a link when given an href', () => {
     render(<SettingsRow label={en.settings.feedback.title} href="mailto:hi@example.com" external />)
 
-    const link = screen.getByRole('link', { name: new RegExp(en.settings.feedback.title) })
+    const link = screen.getByRole('link', {
+      name: new RegExp(en.settings.feedback.title),
+    })
     expect(link).toHaveAttribute('href', 'mailto:hi@example.com')
     expect(link).toHaveAttribute('target', '_blank')
     expect(link).toHaveAttribute('rel', expect.stringContaining('noreferrer'))
@@ -56,7 +60,10 @@ describe('ChoiceGroup', () => {
         label={en.settings.appearance.title}
         value="system"
         onSelect={jest.fn().mockResolvedValue(undefined)}
-        options={THEMES.map((theme) => ({ value: theme, label: en.settings.appearance[theme] }))}
+        options={THEMES.map((theme) => ({
+          value: theme,
+          label: en.settings.appearance[theme],
+        }))}
       />,
     )
 
@@ -74,7 +81,10 @@ describe('ChoiceGroup', () => {
         label={en.settings.appearance.title}
         value="system"
         onSelect={onSelect}
-        options={THEMES.map((theme) => ({ value: theme, label: en.settings.appearance[theme] }))}
+        options={THEMES.map((theme) => ({
+          value: theme,
+          label: en.settings.appearance[theme],
+        }))}
       />,
     )
 
@@ -90,7 +100,10 @@ describe('ChoiceGroup', () => {
         label={en.settings.language.title}
         value="en"
         onSelect={onSelect}
-        options={LOCALES.map((locale) => ({ value: locale, label: LOCALE_LABELS[locale] }))}
+        options={LOCALES.map((locale) => ({
+          value: locale,
+          label: LOCALE_LABELS[locale],
+        }))}
       />,
     )
 
@@ -107,7 +120,10 @@ describe('ChoiceGroup', () => {
         label={en.settings.language.title}
         value="en"
         onSelect={onSelect}
-        options={LOCALES.map((locale) => ({ value: locale, label: LOCALE_LABELS[locale] }))}
+        options={LOCALES.map((locale) => ({
+          value: locale,
+          label: LOCALE_LABELS[locale],
+        }))}
       />,
     )
 
@@ -160,7 +176,9 @@ describe('NotificationSettings', () => {
     expect(screen.getAllByRole('switch')).toHaveLength(4)
     expect(screen.getByRole('switch', { name: labels.master })).toBeChecked()
     expect(
-      screen.getByRole('switch', { name: en.settings.notifications.weeklyReport }),
+      screen.getByRole('switch', {
+        name: en.settings.notifications.weeklyReport,
+      }),
     ).not.toBeChecked()
   })
 
@@ -168,7 +186,9 @@ describe('NotificationSettings', () => {
     const { onToggleType } = renderSettings()
 
     await userEvent.click(
-      screen.getByRole('switch', { name: en.settings.notifications.streakAlert }),
+      screen.getByRole('switch', {
+        name: en.settings.notifications.streakAlert,
+      }),
     )
 
     expect(onToggleType).toHaveBeenCalledWith('streakAlert', false)
@@ -178,7 +198,9 @@ describe('NotificationSettings', () => {
     renderSettings({ enabled: false, types: defaultPreferences().types })
 
     expect(
-      screen.getByRole('switch', { name: en.settings.notifications.dailyReminder }),
+      screen.getByRole('switch', {
+        name: en.settings.notifications.dailyReminder,
+      }),
     ).toBeDisabled()
     expect(screen.getByText(labels.disabledHint)).toBeInTheDocument()
   })
@@ -205,7 +227,9 @@ describe('NotificationSettings', () => {
     expect(onToggleAll).toHaveBeenCalledWith(false)
     await waitFor(() =>
       expect(
-        screen.getByRole('switch', { name: en.settings.notifications.dailyReminder }),
+        screen.getByRole('switch', {
+          name: en.settings.notifications.dailyReminder,
+        }),
       ).toBeDisabled(),
     )
 
@@ -232,7 +256,10 @@ describe('PreferenceSwitch', () => {
 })
 
 describe('RateAppButton', () => {
-  const labels = { action: en.settings.rating.action, unavailable: en.settings.rating.unavailable }
+  const labels = {
+    action: en.settings.rating.action,
+    unavailable: en.settings.rating.unavailable,
+  }
 
   it('opens the store listing when one is configured', async () => {
     const open = jest.fn()

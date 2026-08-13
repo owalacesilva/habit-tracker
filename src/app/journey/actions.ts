@@ -11,7 +11,9 @@ const startSchema = z.object({ journeyId: z.string().min(1) })
 /** Enrol the current user; already-started journeys keep their start date. */
 export async function startJourneyAction(formData: FormData) {
   const user = await requireUser()
-  const parsed = startSchema.safeParse({ journeyId: formData.get('journeyId') })
+  const parsed = startSchema.safeParse({
+    journeyId: formData.get('journeyId'),
+  })
 
   if (!parsed.success || !getJourney(parsed.data.journeyId)) {
     throw new Error('Unknown journey')

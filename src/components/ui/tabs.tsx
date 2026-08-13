@@ -44,7 +44,7 @@ export function Tabs({ items, activeId, label, panelId, className }: TabsProps) 
             aria-selected={active}
             aria-controls={panelId}
             className={cn(
-              'flex min-h-11 flex-1 items-center justify-center rounded-pill px-3 text-center text-xs font-semibold whitespace-nowrap transition-colors',
+              'flex min-h-11 flex-1 items-center justify-center whitespace-nowrap rounded-pill px-3 text-center font-semibold text-xs transition-colors',
               active
                 ? 'bg-surface text-ink shadow-card'
                 : 'text-ink-muted hover:bg-surface/60 hover:text-ink',

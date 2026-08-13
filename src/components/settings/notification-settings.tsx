@@ -44,7 +44,10 @@ export function NotificationSettings({
 
   function toggleType(type: NotificationType, enabled: boolean) {
     startTransition(async () => {
-      setOptimistic({ ...optimistic, types: { ...optimistic.types, [type]: enabled } })
+      setOptimistic({
+        ...optimistic,
+        types: { ...optimistic.types, [type]: enabled },
+      })
       await onToggleType(type, enabled)
     })
   }

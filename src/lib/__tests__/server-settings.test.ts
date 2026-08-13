@@ -54,7 +54,10 @@ describe('getScreenSettings', () => {
     mockCookies.set(LOCALE_COOKIE, 'kl-GL')
     mockCookies.set(THEME_COOKIE, 'neon')
 
-    await expect(getScreenSettings()).resolves.toMatchObject({ locale: 'en', theme: 'system' })
+    await expect(getScreenSettings()).resolves.toMatchObject({
+      locale: 'en',
+      theme: 'system',
+    })
   })
 })
 

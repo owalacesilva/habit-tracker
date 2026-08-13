@@ -26,9 +26,9 @@ help: ## Show this help
 		| awk 'BEGIN {FS = ":.*?## "}; {printf "  \033[36m%-14s\033[0m %s\n", $$1, $$2}'
 	@echo ""
 
-env: ## Create .env.local from .env.example (no-op if it exists)
+env: ## Create .env.local from .env-example (no-op if it exists)
 	@test -f .env.local && echo ".env.local already exists" || \
-		(cp .env.example .env.local && echo "created .env.local — run 'make secret' next")
+		(cp .env-example .env.local && echo "created .env.local — run 'make secret' next")
 
 secret: ## Print a fresh AUTH_SECRET (generated in the container)
 	@$(RUN) node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"

@@ -34,7 +34,9 @@ describe('HabitForm', () => {
     renderForm()
 
     expect(dayButtons()).toHaveLength(7)
-    dayButtons().forEach((day) => expect(day).toBeChecked())
+    dayButtons().forEach((day) => {
+      expect(day).toBeChecked()
+    })
   })
 
   it('labels the days in the active locale', () => {
@@ -60,7 +62,9 @@ describe('HabitForm', () => {
 
     await userEvent.click(screen.getByRole('checkbox', { name: en.newHabit.repeatEveryDay }))
 
-    dayButtons().forEach((day) => expect(day).not.toBeChecked())
+    dayButtons().forEach((day) => {
+      expect(day).not.toBeChecked()
+    })
   })
 
   it('keeps the goal fields disabled until a goal is set', async () => {

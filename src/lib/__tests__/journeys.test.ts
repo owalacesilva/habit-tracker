@@ -1,10 +1,10 @@
 import {
   __resetJourneyStore,
+  getJourney,
   journeyContent,
   journeyProgress,
   listEnrollments,
   listJourneys,
-  getJourney,
   recommendJourneys,
   startJourney,
   toJourneyViews,
@@ -166,6 +166,10 @@ describe('toJourneyViews', () => {
       recommended: false,
       progress: { day: 3, total: 10 },
     })
-    expect(views[1]).toMatchObject({ id: 'b', recommended: true, progress: null })
+    expect(views[1]).toMatchObject({
+      id: 'b',
+      recommended: true,
+      progress: null,
+    })
   })
 })

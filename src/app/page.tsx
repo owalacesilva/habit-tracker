@@ -57,7 +57,7 @@ export default async function TodayPage({
                 <ChartIcon className="h-5 w-5" />
               </Link>
               <span
-                aria-hidden
+                aria-hidden="true"
                 className="flex h-11 w-11 items-center justify-center rounded-full bg-brand-100 text-xl"
               >
                 🐯
@@ -83,10 +83,10 @@ export default async function TodayPage({
 
         <section className="flex flex-col gap-4">
           <div className="flex items-baseline justify-between gap-3">
-            <h2 className="text-lg font-bold text-ink">{t.home.dailyRoutine}</h2>
+            <h2 className="font-bold text-ink text-lg">{t.home.dailyRoutine}</h2>
             <Link
               href="/history?tab=habits"
-              className="shrink-0 text-xs font-medium text-ink-muted hover:text-ink"
+              className="shrink-0 font-medium text-ink-muted text-xs hover:text-ink"
             >
               {t.common.seeAll}
             </Link>

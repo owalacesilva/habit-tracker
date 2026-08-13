@@ -10,7 +10,7 @@ describe('EmptyState', () => {
         icon="🌱"
         title={en.home.emptyTitle}
         body={en.home.emptyBody}
-        action={<button>Add</button>}
+        action={<button type="button">Add</button>}
       />,
     )
 
@@ -35,7 +35,12 @@ describe('ErrorState', () => {
   })
 
   it('renders a retry action when given one', () => {
-    render(<ErrorState title={en.common.errorTitle} action={<button>{en.common.retry}</button>} />)
+    render(
+      <ErrorState
+        title={en.common.errorTitle}
+        action={<button type="button">{en.common.retry}</button>}
+      />,
+    )
 
     expect(screen.getByRole('button', { name: en.common.retry })).toBeInTheDocument()
   })
@@ -55,9 +60,31 @@ describe('SkeletonList', () => {
     expect(container.querySelectorAll('.card')).toHaveLength(5)
   })
 
-  it('hides the placeholders from assistive tech', () => {
-    const { container } = render(<Skeleton className="h-3" />)
+  it('is shaped like the rows it stands in for', () => {
+    const { container } = render(<SkeletonList rows={1} label={en.common.loading} />)
 
-    expect(container.firstChild).toHaveAttribute('aria-hidden', 'true')
+    // Icon tile plus two lines of text — not one anonymous grey slab.
+    const row = container.querySelector('.card') as HTMLElement
+    const parts = row.querySelectorAll('.react-loading-skeleton')
+    expect(parts).toHaveLength(3)
+    expect((parts[0] as HTMLElement).style.height).toBe('44px')
+  })
+
+  it('takes its colours from the design tokens, so it follows the theme', () => {
+    const { container } = render(<SkeletonList rows={1} label={en.common.loading} />)
+
+    // The library sets a grey default on its own class, so the tokens have to
+    // arrive as inline custom properties to win — and to resolve per theme.
+    const placeholder = container.querySelector('.react-loading-skeleton') as HTMLElement
+    expect(placeholder.style.getPropertyValue('--base-color')).toBe('var(--color-skeleton)')
+    expect(placeholder.style.getPropertyValue('--highlight-color')).toBe(
+      'var(--color-skeleton-highlight)',
+    )
+  })
+
+  it('renders a standalone placeholder', () => {
+    const { container } = render(<Skeleton width={40} />)
+
+    expect(container.querySelector('.react-loading-skeleton')).toBeInTheDocument()
   })
 })

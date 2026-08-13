@@ -70,14 +70,18 @@ describe('HabitRow', () => {
 
     expect(screen.getByText('Sequência de 3 dias')).toBeInTheDocument()
     expect(
-      screen.getByRole('checkbox', { name: 'Marcar "Drink a glass of water" como feito' }),
+      screen.getByRole('checkbox', {
+        name: 'Marcar "Drink a glass of water" como feito',
+      }),
     ).toBeInTheDocument()
   })
 
   it('names the toggle after what it will do', () => {
     renderRow()
     expect(
-      screen.getByRole('checkbox', { name: 'Mark "Drink a glass of water" as done' }),
+      screen.getByRole('checkbox', {
+        name: 'Mark "Drink a glass of water" as done',
+      }),
     ).toBeInTheDocument()
   })
 

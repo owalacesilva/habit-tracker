@@ -1,5 +1,5 @@
-import { toISODate, toWeekday } from '@/lib/date'
 import { currentStreak } from '@/lib/habits'
+import { countPerfectDays, eachDay } from '@/lib/statistics'
 import type { Habit } from '@/types/habit'
 
 export const ACHIEVEMENT_IDS = [
@@ -42,20 +42,8 @@ function bestStreak(habits: Habit[], today: Date): number {
 
 /** A day where every scheduled habit was ticked (and at least one was due). */
 export function hasPerfectDay(habits: Habit[], today: Date, window = PERFECT_DAY_WINDOW): boolean {
-  if (habits.length === 0) return false
-
-  for (let offset = 0; offset < window; offset += 1) {
-    const date = new Date(today.getFullYear(), today.getMonth(), today.getDate() - offset)
-    const iso = toISODate(date)
-    const weekday = toWeekday(date)
-
-    const scheduled = habits.filter((habit) => habit.repeatDays.includes(weekday))
-    if (scheduled.length === 0) continue
-
-    if (scheduled.every((habit) => habit.completedDates.includes(iso))) return true
-  }
-
-  return false
+  const from = new Date(today.getFullYear(), today.getMonth(), today.getDate() - (window - 1))
+  return countPerfectDays(habits, eachDay(from, today)) > 0
 }
 
 function achievement(
@@ -64,7 +52,13 @@ function achievement(
   target: number,
   unlocked = current >= target,
 ): Achievement {
-  return { id, icon: ICONS[id], current: Math.min(current, target), target, unlocked }
+  return {
+    id,
+    icon: ICONS[id],
+    current: Math.min(current, target),
+    target,
+    unlocked,
+  }
 }
 
 /** Derived from habit data — nothing extra to persist. */

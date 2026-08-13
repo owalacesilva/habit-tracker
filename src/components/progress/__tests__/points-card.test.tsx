@@ -40,7 +40,14 @@ describe('PointsCard', () => {
   })
 
   it('renders the action it is given', () => {
-    render(<PointsCard points={0} stats={[]} labels={labels} action={<button>Share</button>} />)
+    render(
+      <PointsCard
+        points={0}
+        stats={[]}
+        labels={labels}
+        action={<button type="button">Share</button>}
+      />,
+    )
 
     expect(screen.getByRole('button', { name: 'Share' })).toBeInTheDocument()
   })

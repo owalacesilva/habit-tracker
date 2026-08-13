@@ -1,4 +1,5 @@
 import { toISODate, toWeekday } from '@/lib/date'
+import { currentPersona, personaHabits } from '@/lib/mocks/personas'
 import type { ChartTone, Habit, HabitProgress, NewHabitInput, Weekday } from '@/types/habit'
 
 /**
@@ -47,70 +48,12 @@ export function shortLabel(name: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1)
 }
 
+/**
+ * Starting data for a user. The persona is fixture data for manual testing —
+ * see `src/lib/mocks/personas.ts`; it defaults to the original demo routine.
+ */
 function seed(userId: string): Habit[] {
-  const today = toISODate(new Date())
-  return [
-    {
-      id: 'water',
-      userId,
-      name: 'Drink a glass of water',
-      shortName: 'Water',
-      icon: '🥤',
-      accent: 'water',
-      durationMinutes: 5,
-      repeatDays: ALL_DAYS,
-      remindersEnabled: true,
-      completedDates: [today],
-    },
-    {
-      id: 'meditate',
-      userId,
-      name: 'Meditate to relax',
-      shortName: 'Meditate',
-      icon: '🧘',
-      accent: 'meditate',
-      durationMinutes: 15,
-      repeatDays: ALL_DAYS,
-      remindersEnabled: true,
-      completedDates: [today],
-    },
-    {
-      id: 'stretch',
-      userId,
-      name: 'Stretch for 10 minutes',
-      shortName: 'Stretch',
-      icon: '🤸',
-      accent: 'stretch',
-      durationMinutes: 10,
-      repeatDays: [0, 1, 2, 3, 4],
-      remindersEnabled: false,
-      completedDates: [],
-    },
-    {
-      id: 'walk',
-      userId,
-      name: 'Go for a short walk',
-      shortName: 'Walk',
-      icon: '🚶',
-      accent: 'walk',
-      durationMinutes: 20,
-      repeatDays: ALL_DAYS,
-      remindersEnabled: false,
-      completedDates: [],
-    },
-    {
-      id: 'journal',
-      userId,
-      name: 'Write down 3 wins',
-      shortName: 'Journal',
-      icon: '📓',
-      accent: 'meditate',
-      durationMinutes: 5,
-      repeatDays: [0, 2, 4],
-      remindersEnabled: false,
-      completedDates: [],
-    },
-  ]
+  return personaHabits(currentPersona(), userId)
 }
 
 const store = new Map<string, Habit[]>()

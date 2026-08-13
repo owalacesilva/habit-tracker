@@ -22,6 +22,8 @@ services:
       - '${APP_PORT:-3000}:3000'
     environment:
       NODE_ENV: development
+      # Fixture data for manual testing: demo | empty | starter | regular | power
+      MOCK_PERSONA: ${MOCK_PERSONA:-demo}
       # Arbitrary UIDs have no /etc/passwd entry, so point HOME at a directory
       # the image created for them (keeps the npm cache writable).
       HOME: /home/app

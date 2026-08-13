@@ -105,7 +105,9 @@ describe('JourneyList', () => {
       />,
     )
 
-    const recommended = screen.getByRole('region', { name: en.journey.recommendedTitle })
+    const recommended = screen.getByRole('region', {
+      name: en.journey.recommendedTitle,
+    })
     expect(
       within(recommended).getByRole('heading', { name: 'Recommended one' }),
     ).toBeInTheDocument()

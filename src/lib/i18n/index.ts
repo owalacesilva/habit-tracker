@@ -3,8 +3,8 @@ import en, { type Dictionary } from '@/lib/i18n/dictionaries/en'
 import es from '@/lib/i18n/dictionaries/es'
 import ptBR from '@/lib/i18n/dictionaries/pt-BR'
 
-export type { Dictionary }
 export * from '@/lib/i18n/config'
+export type { Dictionary }
 
 const DICTIONARIES: Record<Locale, Dictionary> = {
   en,

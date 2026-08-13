@@ -61,14 +61,18 @@ export function startOfWeek(date: Date, weekStartsOn: Weekday = 0): Date {
 /** Short weekday names in Monday-first order, e.g. `Mon` / `seg.`. */
 export function weekdayLabels(locale?: string): string[] {
   if (!locale) return [...WEEKDAY_LABELS]
-  const formatter = new Intl.DateTimeFormat(displayLocale(locale), { weekday: 'short' })
+  const formatter = new Intl.DateTimeFormat(displayLocale(locale), {
+    weekday: 'short',
+  })
   // 2024-01-01 was a Monday.
   return Array.from({ length: 7 }, (_, index) => formatter.format(new Date(2024, 0, 1 + index)))
 }
 
 /** Single-letter weekday names in Monday-first order, for the repeat picker. */
 export function weekdayInitials(locale?: string): string[] {
-  const formatter = new Intl.DateTimeFormat(displayLocale(locale ?? 'en'), { weekday: 'narrow' })
+  const formatter = new Intl.DateTimeFormat(displayLocale(locale ?? 'en'), {
+    weekday: 'narrow',
+  })
   return Array.from({ length: 7 }, (_, index) =>
     formatter.format(new Date(2024, 0, 1 + index)).toUpperCase(),
   )

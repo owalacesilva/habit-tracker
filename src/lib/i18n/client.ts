@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore } from 'react'
 
-import { getDictionary, type Dictionary } from '@/lib/i18n'
+import { type Dictionary, getDictionary } from '@/lib/i18n'
 import { DEFAULT_LOCALE, parseLocale } from '@/lib/i18n/config'
 
 const subscribe = () => () => {}

@@ -4,9 +4,17 @@ import { TabPanel, Tabs } from '@/components/ui/tabs'
 import en from '@/lib/i18n/dictionaries/en'
 
 const items = [
-  { id: 'statistics', label: en.history.tabStatistics, href: '/history?tab=statistics' },
+  {
+    id: 'statistics',
+    label: en.history.tabStatistics,
+    href: '/history?tab=statistics',
+  },
   { id: 'habits', label: en.history.tabHabits, href: '/history?tab=habits' },
-  { id: 'achievements', label: en.history.tabAchievements, href: '/history?tab=achievements' },
+  {
+    id: 'achievements',
+    label: en.history.tabAchievements,
+    href: '/history?tab=achievements',
+  },
 ]
 
 function renderTabs(activeId = 'statistics') {
@@ -44,7 +52,9 @@ describe('Tabs', () => {
   it('gives the selected tab a distinct style', () => {
     renderTabs('achievements')
 
-    const selected = screen.getByRole('tab', { name: en.history.tabAchievements })
+    const selected = screen.getByRole('tab', {
+      name: en.history.tabAchievements,
+    })
     expect(selected.className).toContain('bg-surface')
   })
 

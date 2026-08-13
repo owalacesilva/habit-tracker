@@ -21,10 +21,10 @@ export function SettingsSection({
   return (
     <section aria-labelledby={id} className={cn('flex flex-col gap-2', className)}>
       <div className="px-1">
-        <h2 id={id} className="text-sm font-bold text-ink">
+        <h2 id={id} className="font-bold text-ink text-sm">
           {title}
         </h2>
-        {description && <p className="mt-0.5 text-xs text-ink-muted">{description}</p>}
+        {description && <p className="mt-0.5 text-ink-muted text-xs">{description}</p>}
       </div>
       <div className="card divide-y divide-sand-200 overflow-hidden">{children}</div>
     </section>
@@ -66,15 +66,15 @@ export function SettingsRow({
       <div className="flex items-start gap-3">
         {icon && (
           <span
-            aria-hidden
+            aria-hidden="true"
             className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-sand-100 text-ink-muted"
           >
             {icon}
           </span>
         )}
         <div className="min-w-0 flex-1">
-          <p className="text-sm font-medium text-balance text-ink">{label}</p>
-          {description && <p className="mt-0.5 text-xs text-ink-muted">{description}</p>}
+          <p className="text-balance font-medium text-ink text-sm">{label}</p>
+          {description && <p className="mt-0.5 text-ink-muted text-xs">{description}</p>}
         </div>
         {control && <div className="flex shrink-0 items-center">{control}</div>}
       </div>

@@ -181,7 +181,10 @@ export function startJourney(
   const existing = current.find((entry) => entry.journeyId === journeyId)
   if (existing) return { ...existing }
 
-  const enrollment: JourneyEnrollment = { journeyId, startedIso: toISODate(today) }
+  const enrollment: JourneyEnrollment = {
+    journeyId,
+    startedIso: toISODate(today),
+  }
   enrollments.set(userId, [...current, enrollment])
   return { ...enrollment }
 }
