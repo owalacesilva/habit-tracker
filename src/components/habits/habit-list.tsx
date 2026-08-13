@@ -1,4 +1,5 @@
-import { HabitRow } from '@/components/habits/habit-row'
+import { HabitRow, type HabitRowLabels } from '@/components/habits/habit-row'
+import { EmptyState } from '@/components/ui/states'
 import type { Habit } from '@/types/habit'
 
 export interface HabitListItem {
@@ -10,16 +11,13 @@ export interface HabitListItem {
 export interface HabitListProps {
   items: HabitListItem[]
   isoDate: string
+  labels: HabitRowLabels & { emptyTitle: string; emptyBody: string }
   onToggle: (habitId: string, isoDate: string) => Promise<boolean>
 }
 
-export function HabitList({ items, isoDate, onToggle }: HabitListProps) {
+export function HabitList({ items, isoDate, labels, onToggle }: HabitListProps) {
   if (items.length === 0) {
-    return (
-      <p className="card px-4 py-6 text-center text-sm text-ink-muted">
-        Nothing scheduled for this day. Tap + to add a habit.
-      </p>
-    )
+    return <EmptyState icon="🌱" title={labels.emptyTitle} body={labels.emptyBody} />
   }
 
   return (
@@ -36,6 +34,7 @@ export function HabitList({ items, isoDate, onToggle }: HabitListProps) {
           isoDate={isoDate}
           completed={completed}
           streak={streak}
+          labels={labels}
           onToggle={onToggle}
         />
       ))}

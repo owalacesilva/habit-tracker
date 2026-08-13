@@ -1,12 +1,29 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
-import { HabitForm } from '@/components/habits/habit-form'
 import type { HabitFormState } from '@/app/actions'
+import { HabitForm } from '@/components/habits/habit-form'
+import { weekdayInitials } from '@/lib/date'
+import en from '@/lib/i18n/dictionaries/en'
+
+const labels = {
+  nameLabel: en.newHabit.nameLabel,
+  namePlaceholder: en.newHabit.namePlaceholder,
+  goalLabel: en.newHabit.goalLabel,
+  goalDate: en.newHabit.goalDate,
+  duration: en.newHabit.duration,
+  repeatLabel: en.newHabit.repeatLabel,
+  repeatEveryDay: en.newHabit.repeatEveryDay,
+  repeatOnDay: en.newHabit.repeatOnDay,
+  remindersLabel: en.newHabit.remindersLabel,
+  save: en.newHabit.save,
+  saving: en.newHabit.saving,
+  minutes: en.common.minutesShort,
+}
 
 function renderForm(action = jest.fn<Promise<HabitFormState>, [HabitFormState, FormData]>()) {
   action.mockResolvedValue({})
-  render(<HabitForm action={action} />)
+  render(<HabitForm action={action} labels={labels} weekdayInitials={weekdayInitials('en')} />)
   return { action }
 }
 
@@ -18,6 +35,15 @@ describe('HabitForm', () => {
 
     expect(dayButtons()).toHaveLength(7)
     dayButtons().forEach((day) => expect(day).toBeChecked())
+  })
+
+  it('labels the days in the active locale', () => {
+    const action = jest.fn<Promise<HabitFormState>, [HabitFormState, FormData]>()
+    action.mockResolvedValue({})
+    render(<HabitForm action={action} labels={labels} weekdayInitials={weekdayInitials('pt-BR')} />)
+
+    // Portuguese starts the week with "S" (segunda) and has "Q" for quarta.
+    expect(dayButtons()[2]).toHaveTextContent('Q')
   })
 
   it('toggles a single day off', async () => {
@@ -32,7 +58,7 @@ describe('HabitForm', () => {
   it('clears every day when "repeat every day" is unticked', async () => {
     renderForm()
 
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Repeat every day' }))
+    await userEvent.click(screen.getByRole('checkbox', { name: en.newHabit.repeatEveryDay }))
 
     dayButtons().forEach((day) => expect(day).not.toBeChecked())
   })
@@ -40,19 +66,19 @@ describe('HabitForm', () => {
   it('keeps the goal fields disabled until a goal is set', async () => {
     renderForm()
 
-    expect(screen.getByLabelText('Goal date')).toBeDisabled()
+    expect(screen.getByLabelText(en.newHabit.goalDate)).toBeDisabled()
 
-    await userEvent.click(screen.getByRole('checkbox', { name: 'Set a goal' }))
+    await userEvent.click(screen.getByRole('checkbox', { name: en.newHabit.goalLabel }))
 
-    expect(screen.getByLabelText('Goal date')).toBeEnabled()
+    expect(screen.getByLabelText(en.newHabit.goalDate)).toBeEnabled()
   })
 
   it('submits the habit name and the selected days', async () => {
     const { action } = renderForm()
 
-    await userEvent.type(screen.getByLabelText('Name your habit'), 'Morning Meditations')
+    await userEvent.type(screen.getByLabelText(en.newHabit.nameLabel), 'Morning Meditations')
     await userEvent.click(dayButtons()[6])
-    await userEvent.click(screen.getByRole('button', { name: /save habit/i }))
+    await userEvent.click(screen.getByRole('button', { name: en.newHabit.save }))
 
     await waitFor(() => expect(action).toHaveBeenCalled())
 
@@ -65,10 +91,10 @@ describe('HabitForm', () => {
   it('shows the error returned by the action', async () => {
     const action = jest.fn<Promise<HabitFormState>, [HabitFormState, FormData]>()
     action.mockResolvedValue({ error: 'Give your habit a name' })
-    render(<HabitForm action={action} />)
+    render(<HabitForm action={action} labels={labels} weekdayInitials={weekdayInitials('en')} />)
 
-    await userEvent.type(screen.getByLabelText('Name your habit'), 'ab')
-    await userEvent.click(screen.getByRole('button', { name: /save habit/i }))
+    await userEvent.type(screen.getByLabelText(en.newHabit.nameLabel), 'ab')
+    await userEvent.click(screen.getByRole('button', { name: en.newHabit.save }))
 
     expect(await screen.findByText('Give your habit a name')).toBeInTheDocument()
   })

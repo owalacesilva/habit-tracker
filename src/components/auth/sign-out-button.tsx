@@ -1,6 +1,11 @@
 import { signOut } from '@/auth'
+import { Button } from '@/components/ui/button'
 
-export function SignOutButton() {
+export interface SignOutButtonProps {
+  label: string
+}
+
+export function SignOutButton({ label }: SignOutButtonProps) {
   return (
     <form
       action={async () => {
@@ -8,9 +13,14 @@ export function SignOutButton() {
         await signOut({ redirectTo: '/login' })
       }}
     >
-      <button type="submit" className="text-xs font-medium text-ink-muted hover:text-ink">
-        Sign out
-      </button>
+      <Button
+        type="submit"
+        size="sm"
+        variant="ghost"
+        className="border border-sand-200 text-brand-700 shadow-none"
+      >
+        {label}
+      </Button>
     </form>
   )
 }

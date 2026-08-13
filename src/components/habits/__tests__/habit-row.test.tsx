@@ -2,6 +2,8 @@ import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
 
 import { HabitRow } from '@/components/habits/habit-row'
+import en from '@/lib/i18n/dictionaries/en'
+import ptBR from '@/lib/i18n/dictionaries/pt-BR'
 import type { Habit } from '@/types/habit'
 
 const habit: Habit = {
@@ -17,6 +19,14 @@ const habit: Habit = {
   completedDates: [],
 }
 
+const labels = {
+  streakOne: en.home.streakOne,
+  streakOther: en.home.streakOther,
+  markDone: en.home.markDone,
+  markNotDone: en.home.markNotDone,
+  minutes: en.common.minutesShort,
+}
+
 function renderRow(props: Partial<React.ComponentProps<typeof HabitRow>> = {}) {
   const onToggle = jest.fn().mockResolvedValue(true)
   render(
@@ -25,6 +35,7 @@ function renderRow(props: Partial<React.ComponentProps<typeof HabitRow>> = {}) {
       isoDate="2025-03-13"
       completed={false}
       streak={3}
+      labels={labels}
       onToggle={onToggle}
       {...props}
     />,
@@ -44,6 +55,30 @@ describe('HabitRow', () => {
   it('uses the singular form for a one-day streak', () => {
     renderRow({ streak: 1 })
     expect(screen.getByText('Streak 1 day')).toBeInTheDocument()
+  })
+
+  it('renders in the active language', () => {
+    renderRow({
+      labels: {
+        streakOne: ptBR.home.streakOne,
+        streakOther: ptBR.home.streakOther,
+        markDone: ptBR.home.markDone,
+        markNotDone: ptBR.home.markNotDone,
+        minutes: ptBR.common.minutesShort,
+      },
+    })
+
+    expect(screen.getByText('Sequência de 3 dias')).toBeInTheDocument()
+    expect(
+      screen.getByRole('checkbox', { name: 'Marcar "Drink a glass of water" como feito' }),
+    ).toBeInTheDocument()
+  })
+
+  it('names the toggle after what it will do', () => {
+    renderRow()
+    expect(
+      screen.getByRole('checkbox', { name: 'Mark "Drink a glass of water" as done' }),
+    ).toBeInTheDocument()
   })
 
   it('renders a completed habit as checked', () => {

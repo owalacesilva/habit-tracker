@@ -1,13 +1,26 @@
 import { render, screen } from '@testing-library/react'
 
 import { PointsCard } from '@/components/progress/points-card'
+import en from '@/lib/i18n/dictionaries/en'
+
+const labels = {
+  title: en.history.statistics.pointsEarned,
+  subtitle: en.history.statistics.forThisWeek,
+  points: en.history.statistics.points,
+}
 
 describe('PointsCard', () => {
-  it('formats the points total', () => {
-    render(<PointsCard points={1842} stats={[]} />)
+  it('formats the points total for the active locale', () => {
+    render(<PointsCard points={1842} stats={[]} labels={labels} />)
 
     expect(screen.getByText('1,842')).toBeInTheDocument()
-    expect(screen.getByText(/for this week/i)).toBeInTheDocument()
+    expect(screen.getByText(en.history.statistics.forThisWeek)).toBeInTheDocument()
+  })
+
+  it('uses the number grouping of the active locale', () => {
+    render(<PointsCard points={1842} stats={[]} labels={labels} locale="pt-BR" />)
+
+    expect(screen.getByText('1.842')).toBeInTheDocument()
   })
 
   it('renders each stat as a term/definition pair', () => {
@@ -18,6 +31,7 @@ describe('PointsCard', () => {
           { label: 'Completed', value: '4' },
           { label: 'Time', value: '7h 30m' },
         ]}
+        labels={labels}
       />,
     )
 
@@ -25,9 +39,9 @@ describe('PointsCard', () => {
     expect(screen.getByText('7h 30m')).toBeInTheDocument()
   })
 
-  it('offers the share action', () => {
-    render(<PointsCard points={0} stats={[]} />)
+  it('renders the action it is given', () => {
+    render(<PointsCard points={0} stats={[]} labels={labels} action={<button>Share</button>} />)
 
-    expect(screen.getByRole('button', { name: /share progress/i })).toBeInTheDocument()
+    expect(screen.getByRole('button', { name: 'Share' })).toBeInTheDocument()
   })
 })
