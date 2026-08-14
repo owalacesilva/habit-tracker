@@ -3,6 +3,7 @@
 import { useOptimistic, useTransition } from 'react'
 
 import { CheckIcon, ClockIcon } from '@/components/icons'
+import { format, plural } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 import type { Habit, HabitAccent } from '@/types/habit'
 
@@ -13,16 +14,26 @@ const ACCENT_CLASS: Record<HabitAccent, string> = {
   walk: 'bg-habit-walk',
 }
 
+/** Templates with `{count}` / `{name}` placeholders, from the dictionary. */
+export interface HabitRowLabels {
+  streakOne: string
+  streakOther: string
+  markDone: string
+  markNotDone: string
+  minutes: string
+}
+
 export interface HabitRowProps {
   habit: Habit
   isoDate: string
   completed: boolean
   streak: number
+  labels: HabitRowLabels
   /** Server action; the row ticks optimistically while it runs. */
   onToggle: (habitId: string, isoDate: string) => Promise<boolean>
 }
 
-export function HabitRow({ habit, isoDate, completed, streak, onToggle }: HabitRowProps) {
+export function HabitRow({ habit, isoDate, completed, streak, labels, onToggle }: HabitRowProps) {
   // Falls back to `completed` once the action settles and the server revalidates,
   // which also rolls the tick back when the write fails.
   const [checked, setChecked] = useOptimistic(completed)
@@ -46,7 +57,9 @@ export function HabitRow({ habit, isoDate, completed, streak, onToggle }: HabitR
         role="checkbox"
         aria-checked={checked}
         aria-busy={isPending}
-        aria-label={`Mark "${habit.name}" as ${checked ? 'not done' : 'done'}`}
+        aria-label={format(checked ? labels.markNotDone : labels.markDone, {
+          name: habit.name,
+        })}
         onClick={toggle}
         className={cn(
           'relative z-10 flex h-6 w-6 shrink-0 items-center justify-center rounded-full border-2 transition-colors',
@@ -65,7 +78,7 @@ export function HabitRow({ habit, isoDate, completed, streak, onToggle }: HabitR
         )}
       >
         <span
-          aria-hidden
+          aria-hidden="true"
           className={cn(
             'flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl text-lg',
             ACCENT_CLASS[habit.accent],
@@ -75,17 +88,17 @@ export function HabitRow({ habit, isoDate, completed, streak, onToggle }: HabitR
         </span>
 
         <div className="min-w-0 flex-1">
-          <p className={cn('truncate text-sm font-semibold', checked && 'line-through')}>
+          <p className={cn('truncate font-semibold text-sm', checked && 'line-through')}>
             {habit.name}
           </p>
-          <p className="mt-0.5 text-xs text-ink-muted">
-            Streak {streak} {streak === 1 ? 'day' : 'days'}
+          <p className="mt-0.5 text-ink-muted text-xs">
+            {plural(streak, labels.streakOne, labels.streakOther)}
           </p>
         </div>
 
-        <span className="flex shrink-0 items-center gap-1 rounded-pill bg-sand-100 px-2.5 py-1.5 text-[11px] font-medium text-ink-muted">
+        <span className="flex shrink-0 items-center gap-1 rounded-pill bg-sand-100 px-2.5 py-1.5 font-medium text-[11px] text-ink-muted">
           <ClockIcon className="h-3.5 w-3.5" />
-          {habit.durationMinutes} min
+          {format(labels.minutes, { count: habit.durationMinutes })}
         </span>
       </div>
     </li>

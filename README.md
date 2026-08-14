@@ -17,6 +17,12 @@ and Jest, and running **entirely inside Docker**.
 - [Environment variables](#environment-variables)
 - [Project structure](#project-structure)
 - [Design system](#design-system)
+- [Theming](#theming)
+- [Internationalization](#internationalization)
+- [Settings and persistence](#settings-and-persistence)
+- [Statistics](#statistics)
+- [Tooling](#tooling)
+- [Testing personas](#testing-personas)
 - [PWA](#pwa)
 - [Authentication](#authentication)
 - [Testing](#testing)
@@ -30,41 +36,49 @@ and Jest, and running **entirely inside Docker**.
 
 ## Screens
 
-Three screens, ported from the reference UX (warm sand canvas, white cards, orange primary
-action, soft rounding):
+Four primary destinations behind a persistent bottom navigation, plus two full-screen
+sheets. The visual language follows the reference UX: warm sand canvas, white cards,
+orange primary action, soft rounding.
 
-| Route         | What it does                                                                                                                                                    |
-| ------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `/`           | **Daily routine** — greeting, Monday-first week strip, reminder banner, habit checklist on a dotted timeline (icon tile, streak, duration chip), and a `+` FAB. |
-| `/habits/new` | **New habit** sheet — name, optional goal (date + duration), repeat-day picker, reminders switch, `Save Habit`.                                                 |
-| `/progress`   | **Progress & insights** — weekly completion columns, points earned card with weekly stats, `Share Progress`.                                                    |
-| `/login`      | Sign-in screen for the credentials provider (demo account shown on the page).                                                                                   |
+| Route                    | What it does                                                                                                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `/` **Home**             | Greeting, week strip, reminder banner, habit checklist on a dotted timeline, `+` FAB.                                                                                          |
+| `/journey` **Journey**   | Guided programmes. A **Recommended for you** section (outlined cards, badge) sits above the full catalogue; each card carries duration, habit count, level and progress.       |
+| `/history` **History**   | Three tabs — **Statistics** (weekly chart, points, share), **All Habits** (schedule, streak, completion rate), **My Achievements** (unlocked and locked badges with progress). |
+| `/settings` **Settings** | Appearance, Language, Notifications, Social (share / rate / feedback) and General.                                                                                             |
+| `/habits/new`            | New habit sheet — name, optional goal, repeat days, reminders.                                                                                                                 |
+| `/login`                 | Sign-in for the credentials provider (demo account shown on the page).                                                                                                         |
 
-Selecting a day in the week strip navigates to `/?date=yyyy-mm-dd`, so the server renders
-that day's list — no client-side data store required.
+Navigation state lives in the URL: the week strip links to `/?date=yyyy-mm-dd` and the
+History tabs to `/history?tab=…`, so every view is server-rendered, shareable and
+bookmarkable. `/progress` permanently redirects to `/history?tab=statistics`.
 
----
+Every list screen handles **loading** (skeletons that mirror the final layout),
+**empty** (an explanation plus the way out) and **error** (an alert with a retry) states.
 
 ## Stack
 
-| Concern       | Choice                                                           |
-| ------------- | ---------------------------------------------------------------- |
-| Framework     | Next.js 16 (App Router, React 19, Server Actions)                |
-| Language      | TypeScript 5.9 (strict)                                          |
-| Styling       | Tailwind CSS 4 (CSS-first tokens in `src/app/globals.css`)       |
-| Auth          | NextAuth v5 (JWT sessions, credentials + optional GitHub)        |
-| Validation    | zod 4                                                            |
-| PWA           | Hand-written service worker + web app manifest                   |
-| Tests         | Jest 30 + Testing Library (jsdom)                                |
-| Quality gates | ESLint 9 (flat config), Prettier, Husky, lint-staged, commitlint |
-| Runtime       | Docker (Node 24 Alpine, multi-stage) + docker compose + Make     |
+| Concern       | Choice                                                                         |
+| ------------- | ------------------------------------------------------------------------------ |
+| Framework     | Next.js 16 (App Router, React 19, Server Actions)                              |
+| Language      | TypeScript 5.9 (strict)                                                        |
+| Styling       | Tailwind CSS 4 (CSS-first tokens in `src/app/globals.css`)                     |
+| Auth          | NextAuth v5 (JWT sessions, credentials + optional GitHub)                      |
+| Validation    | zod 4                                                                          |
+| i18n          | Typed dictionaries (en, pt-BR, es) — no runtime dependency                     |
+| Theming       | CSS `light-dark()` tokens, persisted in a cookie                               |
+| PWA           | Hand-written service worker + web app manifest                                 |
+| Skeletons     | react-loading-skeleton, themed from the design tokens                          |
+| Tests         | Jest 30 + Testing Library (jsdom)                                              |
+| Quality gates | Biome 2 (format + lint), ESLint 9 (Next rules), Husky, lint-staged, commitlint |
+| Runtime       | Docker (Node 24 Alpine, multi-stage) + docker compose + Make                   |
 
 ---
 
 ## Quick start
 
 ```bash
-make env        # create .env.local from .env.example
+make env        # create .env.local from .env-example
 make secret     # print an AUTH_SECRET — paste it into .env.local
 make install    # install dependencies inside the container (creates package-lock.json)
 make dev        # http://localhost:3000
@@ -88,7 +102,7 @@ Later runs are cached.
 
 | Target             | Description                                            |
 | ------------------ | ------------------------------------------------------ |
-| `make env`         | Create `.env.local` from `.env.example`                |
+| `make env`         | Create `.env.local` from `.env-example`                |
 | `make secret`      | Generate a random `AUTH_SECRET`                        |
 | `make install`     | `npm install` inside the container                     |
 | `make add PKG="x"` | Add a dependency (`DEV=1` for a devDependency)         |
@@ -113,7 +127,7 @@ Later runs are cached.
 
 ## Environment variables
 
-Copy `.env.example` → `.env.local` (git-ignored) with `make env`.
+Copy `.env-example` → `.env.local` (git-ignored) with `make env`.
 
 | Variable                                  | Required | Purpose                                             |
 | ----------------------------------------- | -------- | --------------------------------------------------- |
@@ -123,6 +137,9 @@ Copy `.env.example` → `.env.local` (git-ignored) with `make env`.
 | `DEMO_USER_EMAIL` / `_PASSWORD` / `_NAME` | no       | Seed account for the credentials provider           |
 | `AUTH_GITHUB_ID` / `AUTH_GITHUB_SECRET`   | no       | Enables the GitHub provider when **both** are set   |
 | `APP_PORT`                                | no       | Host port to publish (default `3000`)               |
+| `NEXT_PUBLIC_APP_STORE_URL`               | no       | Store listing opened by "Rate the app"              |
+| `NEXT_PUBLIC_FEEDBACK_EMAIL`              | no       | Recipient of "Send feedback"                        |
+| `MOCK_PERSONA`                            | no       | Fixture data for manual testing (see below)         |
 
 ---
 
@@ -146,11 +163,14 @@ Copy `.env.example` → `.env.local` (git-ignored) with `make env`.
 └── src/
     ├── app/
     │   ├── globals.css        # Tailwind entry + design tokens (@theme)
-    │   ├── layout.tsx         # fonts, metadata, viewport, SW registration
-    │   ├── page.tsx           # daily routine
+    │   ├── layout.tsx         # theme + language attributes, fonts, metadata
+    │   ├── page.tsx           # Home — daily routine
     │   ├── actions.ts         # server actions (toggle habit, create habit)
+    │   ├── journey/           # Journey screen + start action, loading, error
+    │   ├── history/           # History screen (three tabs), loading, error
+    │   ├── settings/          # Settings screen + preference actions
     │   ├── habits/new/        # new habit sheet
-    │   ├── progress/          # progress & insights
+    │   ├── progress/          # redirect → /history?tab=statistics
     │   ├── login/             # sign-in page + action
     │   └── api/
     │       ├── auth/[...nextauth]/route.ts
@@ -158,8 +178,21 @@ Copy `.env.example` → `.env.local` (git-ignored) with `make env`.
     ├── auth.config.ts         # edge-safe NextAuth config (middleware)
     ├── auth.ts                # providers, handlers, requireUser()
     ├── proxy.ts               # route protection (Next 16 renamed middleware → proxy)
-    ├── components/            # auth/, habits/, progress/, layout/, pwa/, ui/
-    ├── lib/                   # habits.ts, users.ts, date.ts, utils.ts
+    ├── components/
+    │   ├── layout/            # bottom-nav, screen-header, sheet-header, route-error
+    │   ├── journey/           # journey-card, journey-list
+    │   ├── history/           # statistics / habits / achievements panels
+    │   ├── settings/          # sections, rows, choice group, switches, rate button
+    │   └── ui/                # button, tabs, states, switch, share-button, fields
+    ├── lib/
+    │   ├── i18n/              # config, dictionaries (en, pt-BR, es), client hook
+    │   ├── journeys.ts        # catalogue, recommendations, enrolment
+    │   ├── achievements.ts    # badges derived from habit data
+    │   ├── notifications.ts   # per-user notification preferences
+    │   ├── theme.ts           # theme cookie
+    │   ├── general-settings.ts# week start, reduce motion
+    │   ├── server-settings.ts # single cookie read per request
+    │   └── habits.ts, users.ts, date.ts, utils.ts
     └── types/                 # domain + NextAuth type augmentation
 ```
 
@@ -188,6 +221,146 @@ Conventions: `rounded-card` for cards and inputs, `rounded-sheet` for bottom she
 `rounded-pill` for buttons and day circles; `shadow-card` for elevation and `shadow-fab`
 for the floating action button. Screens are wrapped in `.app-shell`, a centred phone-width
 column (`max-w-app`) that respects safe-area insets.
+
+---
+
+## Theming
+
+Light and dark share one set of tokens. Each colour is declared once with CSS
+`light-dark()`, and the scheme is chosen by a single attribute:
+
+```css
+--color-canvas: light-dark(#fbf4ee, #17120f);
+```
+
+| `<html>`             | Result                    |
+| -------------------- | ------------------------- |
+| no attribute         | follows the OS preference |
+| `data-theme="light"` | always light              |
+| `data-theme="dark"`  | always dark               |
+
+The root layout reads the `habit_theme` cookie on the server and renders the attribute
+with the first byte of HTML, so there is no flash of the wrong theme and no theming
+JavaScript. Because components only ever use tokens (`bg-canvas`, `text-ink-muted`), a
+new screen supports both themes without extra work. The chart adds `--color-chart-*-on`
+tokens so the label inside a bar keeps its contrast in either theme.
+
+`Reduce motion` in General settings sets `data-reduce-motion="true"`, which collapses
+animations the same way the OS-level `prefers-reduced-motion` does.
+
+---
+
+## Internationalization
+
+English, Portuguese (Brazil) and Spanish ship in the box, with **no i18n dependency**.
+
+- `src/lib/i18n/dictionaries/en.ts` is the source of truth and exports the `Dictionary`
+  type. Every other language is typed as `Dictionary`, so a missing or renamed key is a
+  **compile error**, and a test asserts key parity and placeholder parity across all three.
+- Interpolation is `{placeholder}` + `format()`; counts use `plural(count, one, other)`.
+- Server components read the language with `getScreenSettings()`; client components get
+  their strings as props. Client-only trees (error boundaries) read `<html lang>` through
+  `useDictionary()`.
+- Dates, weekday names and numbers come from `Intl`, so they follow the language without
+  extra strings.
+- Layouts avoid fixed widths: labels wrap, cards grow, and the tab strip scrolls
+  horizontally rather than squashing longer translations.
+
+**To add a language**: add the tag to `LOCALES`, copy `en.ts` and translate it, register it
+in `src/lib/i18n/index.ts`. It appears in the picker automatically.
+
+---
+
+## Settings and persistence
+
+| Setting                             | Stored in                  | Why                                             |
+| ----------------------------------- | -------------------------- | ----------------------------------------------- |
+| Theme, language, week start, motion | cookie (1 year)            | The server needs them to render the first paint |
+| Notification preferences            | per-user store (`src/lib`) | They belong to the account, not the device      |
+
+Every preference is written by a server action which re-validates the layout, so a change
+is reflected across the whole app immediately. Controls update optimistically
+(`useOptimistic`) and fall back to the persisted value if the write fails.
+
+The Social section uses platform mechanisms where they exist: **Share** calls
+`navigator.share()` and falls back to the clipboard, **Rate the app** opens the store
+listing from `NEXT_PUBLIC_APP_STORE_URL` (and explains itself when unset), and
+**Send feedback** opens the user's mail client at `NEXT_PUBLIC_FEEDBACK_EMAIL`.
+
+---
+
+## Statistics
+
+The Statistics tab reports, for the selected period:
+
+| Metric              | Meaning                                                                    |
+| ------------------- | -------------------------------------------------------------------------- |
+| **Current streak**  | Consecutive days (up to today, or yesterday) with at least one habit done  |
+| **Completed**       | Completions, against the number of days habits were actually due           |
+| **Completion rate** | `completed / due`, so a habit scheduled three days a week is judged fairly |
+| **Perfect days**    | Days where _every_ habit that was due got done                             |
+
+Below the headline tiles, each habit gets its own row with its streak, completions and
+rate, so a good average cannot hide one habit that never happens.
+
+A period filter (`?period=this-week` · `last-week` · `last-4-weeks` · `all-time`) narrows
+all of it. Two rules keep the numbers honest:
+
+- a period **never runs past today**, so days that have not happened yet are not counted
+  as missed — otherwise the rate would fall every morning;
+- **streaks ignore the filter**, because a streak is a fact about now, not about a window.
+
+`all-time` starts at the first recorded completion. Everything lives in
+`src/lib/statistics.ts` and is computed over an explicit list of days, so a new period is
+a new range, not a new code path.
+
+---
+
+## Tooling
+
+**Biome** owns formatting and linting for JS/TS/JSX/JSON/CSS, including Tailwind class
+sorting (`useSortedClasses`) and import ordering — one fast binary instead of Prettier plus
+a stack of ESLint plugins. Two tools stay alongside it:
+
+| Tool     | Scope                                                                        |
+| -------- | ---------------------------------------------------------------------------- |
+| Biome    | Format + lint + import sort for `.ts/.tsx/.js/.json/.css`                    |
+| ESLint   | `eslint-config-next` only — the Next.js and React Compiler rules Biome lacks |
+| Prettier | Markdown only, which Biome cannot format yet                                 |
+
+```bash
+make lint        # biome check + eslint
+make lint-fix    # biome check --write + eslint --fix
+make format      # biome format --write + prettier for Markdown
+```
+
+`biome.json` is configured to match the existing style (single quotes, no semicolons,
+100 columns) so adopting it produced no stylistic churn. Note that Biome silently ignores
+`biome.json` if it contains `//` comments — keep configuration explanations out of it.
+
+---
+
+## Testing personas
+
+Every screen behaves differently depending on how much history exists, and the empty
+account is the easiest state to forget. `MOCK_PERSONA` seeds the demo user with a known
+history so all of them can be exercised:
+
+| Persona   | Habits | History  | Adherence | Good for                                         |
+| --------- | ------ | -------- | --------- | ------------------------------------------------ |
+| `demo`    | 5      | today    | —         | The default: a routine mid-way through today     |
+| `empty`   | 0      | —        | —         | Empty states on every screen                     |
+| `starter` | 2      | 5 days   | 50%       | A new account, achievements still locked         |
+| `regular` | 4      | 5 weeks  | 70%       | The typical case                                 |
+| `power`   | 6      | 12 weeks | 92%       | Long streaks, unlocked achievements, full charts |
+
+```bash
+MOCK_PERSONA=power make dev
+```
+
+The generator is seeded, so a persona always produces exactly the same data — a bug found
+while testing reproduces. Fixtures live in `src/lib/mocks/personas.ts`; production code
+never depends on them beyond the default seed.
 
 ---
 
@@ -238,15 +411,18 @@ make test-ci     # coverage, enforces jest.config.ts thresholds
 ```
 
 Jest runs through `next/jest` and tests live in `__tests__/` folders next to the code —
-98 tests covering:
+289 tests covering:
 
-- **domain logic** — date maths, streaks, weekly completion, per-user isolation, scrypt
-  password hashing;
-- **server actions** — habit creation validation and revalidation, sign-in error handling
-  (with `next/cache`, `next/navigation` and `@/auth` mocked);
-- **auth callbacks** — who gets through the proxy guard and who is redirected;
-- **components** — the optimistic habit toggle and its rollback, the new-habit form,
-  week strip, progress chart, points card, switches and the service-worker registration.
+- **domain logic** — date maths and week-start handling, streaks, completion rates,
+  perfect days and period ranges, journey recommendations and progress, achievements,
+  notification preferences, scrypt password hashing, and the testing personas;
+- **i18n** — key and placeholder parity across every language, locale negotiation,
+  interpolation and pluralisation;
+- **server actions** — habit creation, journey enrolment, every preference write
+  (with `next/headers`, `next/cache` and `@/auth` mocked);
+- **components** — navigation active state, tabs, journey cards and the recommended
+  section, history panels, settings rows and controls, optimistic toggles and their
+  rollback, sharing with its clipboard fallback, empty/loading/error states.
 
 Route files (`page.tsx`, `layout.tsx`, API handlers, `proxy.ts`) are excluded from
 coverage — they need a server runtime, so they are verified by running the app rather

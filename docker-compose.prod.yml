@@ -20,6 +20,8 @@ services:
       - '${APP_PORT:-3000}:3000'
     environment:
       NODE_ENV: production
+      # Fixture data for manual testing: demo | empty | starter | regular | power
+      MOCK_PERSONA: ${MOCK_PERSONA:-demo}
       AUTH_TRUST_HOST: 'true'
     env_file:
       - path: .env.local

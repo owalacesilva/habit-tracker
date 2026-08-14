@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 
 import { ServiceWorkerRegistration } from '@/components/pwa/service-worker-registration'
+import { getScreenSettings } from '@/lib/server-settings'
+import { themeAttribute } from '@/lib/theme'
 import './globals.css'
 
 // Exposed as a CSS variable that `--font-sans` (see globals.css) points at.
@@ -32,16 +34,29 @@ export const metadata: Metadata = {
 }
 
 export const viewport: Viewport = {
-  themeColor: '#FBF4EE',
+  // Matches --color-canvas in each scheme so the browser chrome blends in.
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#FBF4EE' },
+    { media: '(prefers-color-scheme: dark)', color: '#17120F' },
+  ],
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
   viewportFit: 'cover',
 }
 
-export default function RootLayout({ children }: { children: React.ReactNode }) {
+export default async function RootLayout({ children }: { children: React.ReactNode }) {
+  // Read on the server so the first paint already uses the chosen theme and
+  // language — a client-side read would flash the wrong one.
+  const { locale, theme, general } = await getScreenSettings()
+
   return (
-    <html lang="en" className={sans.variable}>
+    <html
+      lang={locale}
+      data-theme={themeAttribute(theme)}
+      data-reduce-motion={general.reduceMotion ? 'true' : undefined}
+      className={sans.variable}
+    >
       <body className="font-sans">
         {children}
         <ServiceWorkerRegistration />

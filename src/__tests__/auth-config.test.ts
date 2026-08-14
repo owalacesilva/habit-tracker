@@ -43,7 +43,9 @@ describe('session callbacks', () => {
     const jwt = authConfig.callbacks.jwt
     const session = authConfig.callbacks.session
 
-    const token = jwt({ token: {}, user: { id: 'user-1' } } as never) as { sub?: string }
+    const token = jwt({ token: {}, user: { id: 'user-1' } } as never) as {
+      sub?: string
+    }
     expect(token.sub).toBe('user-1')
 
     const result = session({

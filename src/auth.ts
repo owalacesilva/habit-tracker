@@ -48,5 +48,9 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
 export async function requireUser() {
   const session = await auth()
   if (!session?.user?.id) throw new Error('Not authenticated')
-  return session.user as { id: string; name?: string | null; email?: string | null }
+  return session.user as {
+    id: string
+    name?: string | null
+    email?: string | null
+  }
 }

@@ -1,12 +1,12 @@
 import { toISODate, weekStrip } from '@/lib/date'
 import {
   __resetStore,
-  shortLabel,
   createHabit,
   currentStreak,
   isCompletedOn,
   listHabits,
   listHabitsForDate,
+  shortLabel,
   toggleCompletion,
   weeklyCompletion,
   weeklyProgress,
@@ -121,7 +121,10 @@ describe('weeklyCompletion', () => {
   })
 
   it('ignores completions on unscheduled days', () => {
-    const habit = makeHabit({ repeatDays: [0], completedDates: ['2025-03-11'] })
+    const habit = makeHabit({
+      repeatDays: [0],
+      completedDates: ['2025-03-11'],
+    })
     expect(weeklyCompletion(habit, week)).toBe(0)
   })
 

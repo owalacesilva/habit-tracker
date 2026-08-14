@@ -5,56 +5,71 @@
  * Every token below generates utilities, e.g. `--color-canvas` → `bg-canvas`,
  * `--radius-card` → `rounded-card`, `--shadow-fab` → `shadow-fab`.
  * Components must use these utilities instead of raw hex values.
+ *
+ * Light and dark live in the SAME token via `light-dark()`, which resolves
+ * against the used `color-scheme` (set just below). One source of truth per
+ * colour, so a component can never be styled for one theme only.
  * ------------------------------------------------------------------------ */
 @theme {
   --font-sans: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
 
   /* Canvas & surfaces */
-  --color-canvas: #fbf4ee;
-  --color-surface: #ffffff;
-  --color-sand-50: #fdf9f5;
-  --color-sand-100: #f8f0e8;
-  --color-sand-200: #f1e4d8;
-  --color-sand-300: #e6d3c3;
+  --color-canvas: light-dark(#fbf4ee, #17120f);
+  --color-surface: light-dark(#ffffff, #221b16);
+  --color-sand-50: light-dark(#fdf9f5, #1c1611);
+  --color-sand-100: light-dark(#f8f0e8, #241d17);
+  --color-sand-200: light-dark(#f1e4d8, #322920);
+  --color-sand-300: light-dark(#e6d3c3, #453a30);
 
   /* Text */
-  --color-ink: #2f1f17;
-  --color-ink-muted: #8c7a6e;
-  --color-ink-soft: #b7a99e;
+  --color-ink: light-dark(#2f1f17, #f7f0ea);
+  --color-ink-muted: light-dark(#8c7a6e, #b6a79b);
+  --color-ink-soft: light-dark(#b7a99e, #8a7b6f);
 
   /* Primary action */
-  --color-brand-50: #fff4ea;
-  --color-brand-100: #ffe4cd;
-  --color-brand-200: #ffc79b;
-  --color-brand-300: #ffa866;
-  --color-brand-400: #ff8a3d;
-  --color-brand-500: #ff6b00;
-  --color-brand-600: #e85f00;
-  --color-brand-700: #bf4e00;
+  --color-brand-50: light-dark(#fff4ea, #2a1508);
+  --color-brand-100: light-dark(#ffe4cd, #3b1d0a);
+  --color-brand-200: light-dark(#ffc79b, #5a2c0f);
+  --color-brand-300: light-dark(#ffa866, #8a4413);
+  --color-brand-400: light-dark(#ff8a3d, #c4611a);
+  --color-brand-500: light-dark(#ff6b00, #ff7a1a);
+  --color-brand-600: light-dark(#e85f00, #ff8f3d);
+  --color-brand-700: light-dark(#bf4e00, #ffb27a);
 
   /* Reminder banner */
-  --color-peach: #fbd8bb;
-  --color-peach-soft: #fde7d2;
+  --color-peach: light-dark(#fbd8bb, #402a1b);
+  --color-peach-soft: light-dark(#fde7d2, #33210f);
 
   /* Habit icon tiles */
-  --color-habit-water: #f6c1a6;
-  --color-habit-meditate: #d9e9b5;
-  --color-habit-stretch: #f4cbe4;
-  --color-habit-walk: #f8d9be;
+  --color-habit-water: light-dark(#f6c1a6, #5c3a2b);
+  --color-habit-meditate: light-dark(#d9e9b5, #3f4a26);
+  --color-habit-stretch: light-dark(#f4cbe4, #4c2e43);
+  --color-habit-walk: light-dark(#f8d9be, #55402c);
 
-  /* Progress chart */
-  --color-chart-walking: #4a2e22;
-  --color-chart-running: #c2410c;
-  --color-chart-meditation: #8faf33;
-  --color-chart-drink: #ee7fd0;
-  --color-chart-track: #f1e4d8;
+  /* Progress chart — `-on` tokens keep the in-bar label readable on both bars
+     and both themes (a light bar needs dark text). */
+  --color-chart-walking: light-dark(#4a2e22, #d8b49e);
+  --color-chart-walking-on: light-dark(#ffffff, #2b1a10);
+  --color-chart-running: light-dark(#c2410c, #f97316);
+  --color-chart-running-on: light-dark(#ffffff, #2b1204);
+  --color-chart-meditation: light-dark(#7d9a24, #b6d24f);
+  --color-chart-meditation-on: light-dark(#ffffff, #23290c);
+  --color-chart-drink: light-dark(#d9569f, #f3a0dc);
+  --color-chart-drink-on: light-dark(#ffffff, #3d0c2c);
+  --color-chart-track: light-dark(#f1e4d8, #2c241d);
+
+  /* Loading placeholders. The highlight is deliberately not a sand step: the
+     scale inverts between themes, so reusing one would sweep a dark smear
+     across dark mode instead of a light shimmer. */
+  --color-skeleton: light-dark(#efe2d6, #2b231c);
+  --color-skeleton-highlight: light-dark(#fbf6f1, #3d332a);
 
   --radius-card: 1.5rem;
   --radius-sheet: 2rem;
   --radius-pill: 9999px;
 
-  --shadow-card: 0 10px 30px -18px rgb(72 42 24 / 0.35);
-  --shadow-fab: 0 12px 24px -8px rgb(255 107 0 / 0.55);
+  --shadow-card: 0 10px 30px -18px light-dark(rgb(72 42 24 / 0.35), rgb(0 0 0 / 0.6));
+  --shadow-fab: 0 12px 24px -8px light-dark(rgb(255 107 0 / 0.55), rgb(255 122 26 / 0.45));
 
   /* Phone-width column: `max-w-app` */
   --container-app: 30rem;
@@ -90,6 +105,26 @@
 }
 
 @layer base {
+  /* Theme selection. The server renders `data-theme` from the cookie; with no
+     attribute (the "system" choice) the OS preference decides. */
+  :root {
+    color-scheme: light dark;
+
+    /* Fallback for react-loading-skeleton. The component passes these tokens
+       inline as well, because the library's own stylesheet sets a grey default
+       on its class, which would beat anything declared here. */
+    --base-color: var(--color-skeleton);
+    --highlight-color: var(--color-skeleton-highlight);
+  }
+
+  [data-theme='light'] {
+    color-scheme: light;
+  }
+
+  [data-theme='dark'] {
+    color-scheme: dark;
+  }
+
   html {
     -webkit-tap-highlight-color: transparent;
   }
@@ -104,12 +139,37 @@
   :focus-visible {
     @apply outline-2 outline-offset-2 outline-brand-500;
   }
+
+  /* Honour the OS setting and the in-app "reduce motion" preference. */
+  @media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.01ms;
+      animation-iteration-count: 1;
+      transition-duration: 0.01ms;
+      scroll-behavior: auto;
+    }
+  }
+
+  [data-reduce-motion='true'] *,
+  [data-reduce-motion='true'] *::before,
+  [data-reduce-motion='true'] *::after {
+    animation-duration: 0.01ms;
+    animation-iteration-count: 1;
+    transition-duration: 0.01ms;
+  }
 }
 
 @layer components {
   /* The phone-sized column every screen lives in. */
   .app-shell {
     @apply mx-auto flex min-h-dvh w-full max-w-app flex-col;
+  }
+
+  /* Screens that sit above the persistent bottom navigation. */
+  .app-shell-nav {
+    padding-bottom: calc(6rem + env(safe-area-inset-bottom));
   }
 
   .card {

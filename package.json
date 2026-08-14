@@ -10,10 +10,10 @@
     "dev": "next dev -H 0.0.0.0 -p 3000",
     "build": "next build",
     "start": "next start -H 0.0.0.0 -p 3000",
-    "lint": "eslint .",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier --write .",
-    "format:check": "prettier --check .",
+    "lint": "biome check . && eslint .",
+    "lint:fix": "biome check --write . && eslint . --fix",
+    "format": "biome format --write . && prettier --write \"**/*.md\"",
+    "format:check": "biome format . && prettier --check \"**/*.md\"",
     "typecheck": "tsc --noEmit",
     "test": "jest",
     "test:watch": "jest --watch",
@@ -26,10 +26,12 @@
     "next-auth": "^5.0.0-beta.32",
     "react": "^19.2.8",
     "react-dom": "^19.2.8",
+    "react-loading-skeleton": "^3.5.0",
     "tailwind-merge": "^3.6.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.5.8",
     "@commitlint/cli": "^21.2.2",
     "@commitlint/config-conventional": "^21.0.0",
     "@eslint/eslintrc": "^3.3.6",
@@ -43,23 +45,20 @@
     "@types/react-dom": "^19.2.4",
     "eslint": "^9.39.5",
     "eslint-config-next": "^16.3.0",
-    "eslint-config-prettier": "^10.1.8",
     "husky": "^9.1.7",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
     "lint-staged": "^17.3.0",
     "prettier": "^3.9.6",
-    "prettier-plugin-tailwindcss": "^0.8.1",
     "tailwindcss": "^4.3.3",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3"
   },
   "lint-staged": {
-    "*.{js,jsx,ts,tsx}": [
-      "eslint --fix",
-      "prettier --write"
+    "*.{js,jsx,ts,tsx,json,css}": [
+      "biome check --write --no-errors-on-unmatched"
     ],
-    "*.{json,css,md,yml,yaml}": [
+    "*.{md,yml,yaml}": [
       "prettier --write"
     ]
   }
