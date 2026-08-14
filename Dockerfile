@@ -69,6 +69,11 @@ COPY . .
 # NextAuth requires a secret at build time; the real one is injected at runtime.
 ARG AUTH_SECRET=build-time-placeholder-secret
 ENV AUTH_SECRET=${AUTH_SECRET}
+# Inlined into the client bundle by Next, so they belong to the build.
+ARG NEXT_PUBLIC_DATA_SOURCE=indexeddb
+ARG NEXT_PUBLIC_API_URL=
+ENV NEXT_PUBLIC_DATA_SOURCE=${NEXT_PUBLIC_DATA_SOURCE} \
+    NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 RUN npm run build
 
 # -------------------------------- runner -----------------------------------

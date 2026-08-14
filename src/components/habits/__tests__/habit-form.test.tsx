@@ -1,9 +1,8 @@
 import { render, screen, waitFor } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
-
-import type { HabitFormState } from '@/app/actions'
 import { HabitForm } from '@/components/habits/habit-form'
 import { weekdayInitials } from '@/lib/date'
+import type { HabitFormState } from '@/lib/habit-form'
 import en from '@/lib/i18n/dictionaries/en'
 
 const labels = {

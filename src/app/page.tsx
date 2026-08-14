@@ -1,16 +1,14 @@
 import Link from 'next/link'
 
-import { toggleHabitAction } from '@/app/actions'
-import { requireUser } from '@/auth'
-import { HabitList } from '@/components/habits/habit-list'
+import { DailyRoutine } from '@/components/habits/daily-routine'
 import { ReminderBanner } from '@/components/habits/reminder-banner'
 import { WeekStrip } from '@/components/habits/week-strip'
 import { ChartIcon, PlusIcon } from '@/components/icons'
 import { BottomNav } from '@/components/layout/bottom-nav'
 import { ScreenHeader } from '@/components/layout/screen-header'
 import { formatLongDate, greeting, parseISODate, toISODate } from '@/lib/date'
-import { currentStreak, isCompletedOn, listHabitsForDate } from '@/lib/habits'
 import { getScreenSettings } from '@/lib/server-settings'
+import { getDisplayName } from '@/lib/session'
 
 export const dynamic = 'force-dynamic'
 
@@ -25,27 +23,20 @@ export default async function TodayPage({
 }: {
   searchParams: Promise<{ date?: string }>
 }) {
-  const [user, { locale, t, weekStartsOn }, { date }] = await Promise.all([
-    requireUser(),
+  const [{ locale, t, weekStartsOn }, name, { date }] = await Promise.all([
     getScreenSettings(),
+    getDisplayName(),
     searchParams,
   ])
 
   const now = new Date()
   const selected = parseISODate(date, now)
-  const habits = listHabitsForDate(user.id, selected)
-
-  const items = habits.map((habit) => ({
-    habit,
-    completed: isCompletedOn(habit, selected),
-    streak: currentStreak(habit, now),
-  }))
 
   return (
     <>
       <main className="app-shell app-shell-nav gap-6 px-5 pt-8">
         <ScreenHeader
-          title={`${t.home[GREETING_KEY[greeting(now)]]}, ${user.name ?? ''}`.trim()}
+          title={`${t.home[GREETING_KEY[greeting(now)]]}${name ? `, ${name}` : ''}`}
           subtitle={formatLongDate(selected, locale)}
           trailing={
             <>
@@ -92,8 +83,8 @@ export default async function TodayPage({
             </Link>
           </div>
 
-          <HabitList
-            items={items}
+          {/* Habits live in the browser store, so the list is a client island. */}
+          <DailyRoutine
             isoDate={toISODate(selected)}
             labels={{
               streakOne: t.home.streakOne,
@@ -103,8 +94,11 @@ export default async function TodayPage({
               minutes: t.common.minutesShort,
               emptyTitle: t.home.emptyTitle,
               emptyBody: t.home.emptyBody,
+              loading: t.common.loading,
+              errorTitle: t.common.errorTitle,
+              errorBody: t.common.errorBody,
+              retry: t.common.retry,
             }}
-            onToggle={toggleHabitAction}
           />
         </section>
 

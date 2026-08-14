@@ -1,13 +1,12 @@
 import { toISODate, toWeekday } from '@/lib/date'
-import { currentPersona, personaHabits } from '@/lib/mocks/personas'
 import type { ChartTone, Habit, HabitProgress, NewHabitInput, Weekday } from '@/types/habit'
 
 /**
- * In-memory habit store.
+ * Habit domain logic — pure functions over habit arrays.
  *
- * This is deliberately the only place that knows how habits are persisted, so
- * swapping it for a database (Prisma/Drizzle + Postgres) is a single-file
- * change. Data resets whenever the server restarts.
+ * Persistence lives behind `DataRepository` (see `src/lib/data`), so the same
+ * rules apply whether the records came from IndexedDB, an external API or the
+ * in-memory adapter.
  */
 
 const ALL_DAYS: Weekday[] = [0, 1, 2, 3, 4, 5, 6]
@@ -48,58 +47,11 @@ export function shortLabel(name: string): string {
   return word.charAt(0).toUpperCase() + word.slice(1)
 }
 
-/**
- * Starting data for a user. The persona is fixture data for manual testing —
- * see `src/lib/mocks/personas.ts`; it defaults to the original demo routine.
- */
-function seed(userId: string): Habit[] {
-  return personaHabits(currentPersona(), userId)
-}
-
-const store = new Map<string, Habit[]>()
-
-function habitsFor(userId: string): Habit[] {
-  let habits = store.get(userId)
-  if (!habits) {
-    habits = seed(userId)
-    store.set(userId, habits)
-  }
-  return habits
-}
-
-export function listHabits(userId: string): Habit[] {
-  return habitsFor(userId).map((habit) => ({ ...habit }))
-}
-
-/** Habits scheduled for the given day, in display order. */
-export function listHabitsForDate(userId: string, date: Date): Habit[] {
-  const weekday = toWeekday(date)
-  return listHabits(userId).filter((habit) => habit.repeatDays.includes(weekday))
-}
-
-export function isCompletedOn(habit: Habit, date: Date): boolean {
-  return habit.completedDates.includes(toISODate(date))
-}
-
-/** Toggle a day on/off and return the resulting completion state. */
-export function toggleCompletion(userId: string, habitId: string, date: Date): boolean {
-  const habit = habitsFor(userId).find((candidate) => candidate.id === habitId)
-  if (!habit) throw new Error(`Unknown habit: ${habitId}`)
-
-  const iso = toISODate(date)
-  const index = habit.completedDates.indexOf(iso)
-  if (index >= 0) {
-    habit.completedDates.splice(index, 1)
-    return false
-  }
-  habit.completedDates.push(iso)
-  return true
-}
-
-export function createHabit(userId: string, input: NewHabitInput): Habit {
-  const habit: Habit = {
-    id: `${Date.now().toString(36)}-${input.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
-    userId,
+/** Build a habit record from form input. Adapters persist what this returns. */
+export function buildHabit(ownerId: string, input: NewHabitInput, now: Date = new Date()): Habit {
+  return {
+    id: `${now.getTime().toString(36)}-${input.name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}`,
+    userId: ownerId,
     name: input.name,
     shortName: input.shortName ?? shortLabel(input.name),
     icon: input.icon ?? '⭐',
@@ -109,8 +61,29 @@ export function createHabit(userId: string, input: NewHabitInput): Habit {
     remindersEnabled: input.remindersEnabled ?? true,
     completedDates: [],
   }
-  habitsFor(userId).push(habit)
-  return habit
+}
+
+/** Add or remove a completion, returning a new record — never mutating. */
+export function toggleCompletionDate(
+  habit: Habit,
+  isoDate: string,
+): { habit: Habit; completed: boolean } {
+  const completed = !habit.completedDates.includes(isoDate)
+  const completedDates = completed
+    ? [...habit.completedDates, isoDate]
+    : habit.completedDates.filter((entry) => entry !== isoDate)
+
+  return { habit: { ...habit, completedDates }, completed }
+}
+
+/** Habits scheduled for the given day, in display order. */
+export function habitsForDate(habits: Habit[], date: Date): Habit[] {
+  const weekday = toWeekday(date)
+  return habits.filter((habit) => habit.repeatDays.includes(weekday))
+}
+
+export function isCompletedOn(habit: Habit, date: Date): boolean {
+  return habit.completedDates.includes(toISODate(date))
 }
 
 /**
@@ -145,17 +118,10 @@ export function weeklyCompletion(habit: Habit, weekDates: Date[]): number {
 const CHART_TONES: ChartTone[] = ['walking', 'running', 'meditation', 'drink']
 
 /** Top four habits of the week, shaped for the progress chart. */
-export function weeklyProgress(userId: string, weekDates: Date[]): HabitProgress[] {
-  return listHabits(userId)
-    .slice(0, 4)
-    .map((habit, index) => ({
-      label: habit.shortName,
-      percentage: weeklyCompletion(habit, weekDates),
-      tone: CHART_TONES[index % CHART_TONES.length],
-    }))
-}
-
-/** Reset helper for tests — never called by the app itself. */
-export function __resetStore() {
-  store.clear()
+export function weeklyProgress(habits: Habit[], weekDates: Date[]): HabitProgress[] {
+  return habits.slice(0, 4).map((habit, index) => ({
+    label: habit.shortName,
+    percentage: weeklyCompletion(habit, weekDates),
+    tone: CHART_TONES[index % CHART_TONES.length],
+  }))
 }

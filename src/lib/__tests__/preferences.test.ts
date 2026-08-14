@@ -4,15 +4,7 @@ import {
   parseWeekStart,
   weekStartIndex,
 } from '@/lib/general-settings'
-import {
-  __resetNotificationStore,
-  defaultPreferences,
-  getNotificationPreferences,
-  isNotificationActive,
-  isNotificationType,
-  setNotificationsEnabled,
-  setNotificationType,
-} from '@/lib/notifications'
+import { defaultPreferences, isNotificationActive, isNotificationType } from '@/lib/notifications'
 import { DEFAULT_THEME, isTheme, parseTheme, themeAttribute } from '@/lib/theme'
 
 describe('theme preference', () => {
@@ -52,49 +44,20 @@ describe('general settings', () => {
   })
 })
 
-describe('notification preferences', () => {
-  const USER = 'test-user'
-
-  beforeEach(() => __resetNotificationStore())
-
-  it('starts from the defaults', () => {
-    expect(getNotificationPreferences(USER)).toEqual(defaultPreferences())
-  })
-
-  it('returns a copy, so callers cannot mutate the store', () => {
-    const preferences = getNotificationPreferences(USER)
-    preferences.types.dailyReminder = false
-
-    expect(getNotificationPreferences(USER).types.dailyReminder).toBe(true)
-  })
-
-  it('toggles the master switch without losing the type choices', () => {
-    setNotificationType(USER, 'weeklyReport', true)
-    const off = setNotificationsEnabled(USER, false)
-
-    expect(off.enabled).toBe(false)
-    expect(off.types.weeklyReport).toBe(true)
-  })
-
-  it('toggles a single type', () => {
-    const next = setNotificationType(USER, 'streakAlert', false)
-
-    expect(next.types.streakAlert).toBe(false)
-    expect(next.types.dailyReminder).toBe(true)
-  })
-
-  it('keeps users apart', () => {
-    setNotificationsEnabled(USER, false)
-    expect(getNotificationPreferences('someone-else').enabled).toBe(true)
+describe('notification rules', () => {
+  it('starts with reminders on and the weekly report off', () => {
+    expect(defaultPreferences()).toEqual({
+      enabled: true,
+      types: { dailyReminder: true, streakAlert: true, weeklyReport: false },
+    })
   })
 
   it('reports a type as active only when the master switch is on', () => {
-    const preferences = setNotificationsEnabled(USER, false)
-    expect(isNotificationActive(preferences, 'dailyReminder')).toBe(false)
+    const preferences = defaultPreferences()
 
-    const enabled = setNotificationsEnabled(USER, true)
-    expect(isNotificationActive(enabled, 'dailyReminder')).toBe(true)
-    expect(isNotificationActive(enabled, 'weeklyReport')).toBe(false)
+    expect(isNotificationActive(preferences, 'dailyReminder')).toBe(true)
+    expect(isNotificationActive(preferences, 'weeklyReport')).toBe(false)
+    expect(isNotificationActive({ ...preferences, enabled: false }, 'dailyReminder')).toBe(false)
   })
 
   it('guards unknown types', () => {

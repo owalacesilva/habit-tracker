@@ -19,6 +19,7 @@ and Jest, and running **entirely inside Docker**.
 - [Design system](#design-system)
 - [Theming](#theming)
 - [Internationalization](#internationalization)
+- [Data layer](#data-layer)
 - [Settings and persistence](#settings-and-persistence)
 - [Statistics](#statistics)
 - [Tooling](#tooling)
@@ -139,6 +140,8 @@ Copy `.env-example` → `.env.local` (git-ignored) with `make env`.
 | `APP_PORT`                                | no       | Host port to publish (default `3000`)               |
 | `NEXT_PUBLIC_APP_STORE_URL`               | no       | Store listing opened by "Rate the app"              |
 | `NEXT_PUBLIC_FEEDBACK_EMAIL`              | no       | Recipient of "Send feedback"                        |
+| `NEXT_PUBLIC_DATA_SOURCE`                 | no       | `indexeddb` (default) · `api` · `memory`            |
+| `NEXT_PUBLIC_API_URL`                     | api mode | Base URL of the external service                    |
 | `MOCK_PERSONA`                            | no       | Fixture data for manual testing (see below)         |
 
 ---
@@ -185,6 +188,12 @@ Copy `.env-example` → `.env.local` (git-ignored) with `make env`.
     │   ├── settings/          # sections, rows, choice group, switches, rate button
     │   └── ui/                # button, tabs, states, switch, share-button, fields
     ├── lib/
+    │   ├── data/              # the swappable data layer
+    │   │   ├── repository.ts  #   the port every source implements
+    │   │   ├── indexeddb-repository.ts, http-repository.ts, memory-repository.ts
+    │   │   ├── factory.ts     #   picks the adapter from NEXT_PUBLIC_DATA_SOURCE
+    │   │   └── provider.tsx   #   client context + useHabits() and friends
+    │   ├── session.ts         # mode-aware session (null in local mode)
     │   ├── i18n/              # config, dictionaries (en, pt-BR, es), client hook
     │   ├── journeys.ts        # catalogue, recommendations, enrolment
     │   ├── achievements.ts    # badges derived from habit data
@@ -268,6 +277,65 @@ English, Portuguese (Brazil) and Spanish ship in the box, with **no i18n depende
 
 **To add a language**: add the tag to `LOCALES`, copy `en.ts` and translate it, register it
 in `src/lib/i18n/index.ts`. It appears in the picker automatically.
+
+---
+
+## Data layer
+
+The app is **autonomous by default**: user data lives in the browser, so it runs
+with no backend and keeps working offline. The same screens can be pointed at an
+external service by changing one variable.
+
+```
+                      ┌─ IndexedDbRepository   NEXT_PUBLIC_DATA_SOURCE=indexeddb
+screens → useHabits() ├─ HttpRepository        NEXT_PUBLIC_DATA_SOURCE=api
+       DataRepository └─ MemoryRepository      tests, and the server render
+```
+
+Everything user-owned goes through the port: habits and completions, journey
+enrolment, notification preferences. The journey _catalogue_ stays editorial
+content rendered on the server, and appearance settings stay in cookies — the
+server needs those before the first paint.
+
+| Mode        | Storage                    | Identity                  | Login    |
+| ----------- | -------------------------- | ------------------------- | -------- |
+| `indexeddb` | Browser, survives restarts | Device id in localStorage | Skipped  |
+| `api`       | External service           | NextAuth session user     | NextAuth |
+| `memory`    | Volatile, lost on reload   | Whatever is passed in     | Skipped  |
+
+Switching is one variable:
+
+```bash
+NEXT_PUBLIC_DATA_SOURCE=api NEXT_PUBLIC_API_URL=https://api.example.com make dev
+```
+
+**In production the value is baked in.** Next inlines `NEXT_PUBLIC_*` into the
+client bundle at build time, so the compose file passes it as a build arg too —
+switching data source needs `make prod` to rebuild, not just a restart.
+
+### What the external API must implement
+
+| Method | Path                         | Purpose                               |
+| ------ | ---------------------------- | ------------------------------------- |
+| GET    | `/habits`                    | List the owner's habits               |
+| POST   | `/habits`                    | Create one, returns the record        |
+| POST   | `/habits/:id/completions`    | Toggle a day, returns `{ completed }` |
+| DELETE | `/habits/:id`                | Remove a habit                        |
+| GET    | `/journeys/enrollments`      | List enrolments                       |
+| POST   | `/journeys/enrollments`      | Start one (idempotent)                |
+| GET    | `/preferences/notifications` | Read preferences                      |
+| PATCH  | `/preferences/notifications` | Update the switch or one type         |
+
+Requests carry cookies and an `x-owner-id` header. One shared **contract test
+suite** runs against all three adapters — including the HTTP client against a
+fake server implementing the table above — so the sources cannot drift apart.
+
+### Offline
+
+The service worker already caches the app shell; with IndexedDB holding the data,
+a cold launch with no network renders the full routine and accepts ticks, which
+persist. Completions apply optimistically and roll back if the write fails —
+which is what an unreachable API looks like.
 
 ---
 
@@ -384,6 +452,11 @@ _Add to Home Screen_.
 
 ## Authentication
 
+**Only API mode authenticates.** With the data in the browser there is nobody to
+authenticate against, so `proxy.ts` lets every route through, `/login` redirects
+home, and the owner is a device id generated on first run. Everything below
+applies when `NEXT_PUBLIC_DATA_SOURCE=api`.
+
 NextAuth v5 with JWT sessions, split in two files so the proxy stays lightweight and
 runtime-agnostic:
 
@@ -394,8 +467,9 @@ runtime-agnostic:
 - `src/proxy.ts` — Next 16's replacement for `middleware.ts`. Protects everything except
   `/login`, NextAuth routes, the health endpoint and PWA assets.
 
-Route protection is defence in depth: every server action and page also calls
-`requireUser()`, so a matcher change can never silently expose a mutation.
+Route protection is defence in depth: pages resolve the user through
+`getSessionUser()`, which returns `null` in local mode without loading NextAuth
+at all — an autonomous deployment never needs `AUTH_SECRET`.
 
 The user store (`src/lib/users.ts`) and the habit store (`src/lib/habits.ts`) are
 in-memory and reset on restart — they are the single seam to replace with a database.
@@ -411,7 +485,7 @@ make test-ci     # coverage, enforces jest.config.ts thresholds
 ```
 
 Jest runs through `next/jest` and tests live in `__tests__/` folders next to the code —
-289 tests covering:
+370 tests covering:
 
 - **domain logic** — date maths and week-start handling, streaks, completion rates,
   perfect days and period ranges, journey recommendations and progress, achievements,

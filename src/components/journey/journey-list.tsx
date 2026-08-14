@@ -13,14 +13,14 @@ export interface JourneyListLabels extends JourneyCardLabels {
 export interface JourneyListProps {
   journeys: JourneyView[]
   labels: JourneyListLabels
-  action: (formData: FormData) => Promise<void>
+  onStart: (journeyId: string) => void | Promise<void>
 }
 
 /**
  * Two groups, visually distinct: the recommendations sit in their own labelled
  * section with outlined cards, everything else follows in a plain list.
  */
-export function JourneyList({ journeys, labels, action }: JourneyListProps) {
+export function JourneyList({ journeys, labels, onStart }: JourneyListProps) {
   if (journeys.length === 0) {
     return <EmptyState icon="🧭" title={labels.emptyTitle} body={labels.emptyBody} />
   }
@@ -43,7 +43,7 @@ export function JourneyList({ journeys, labels, action }: JourneyListProps) {
               key={journey.id}
               journey={journey}
               labels={labels}
-              action={action}
+              onStart={onStart}
               highlighted
             />
           ))}
@@ -56,7 +56,7 @@ export function JourneyList({ journeys, labels, action }: JourneyListProps) {
             {labels.allTitle}
           </h2>
           {rest.map((journey) => (
-            <JourneyCard key={journey.id} journey={journey} labels={labels} action={action} />
+            <JourneyCard key={journey.id} journey={journey} labels={labels} onStart={onStart} />
           ))}
         </section>
       )}

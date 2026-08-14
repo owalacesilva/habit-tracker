@@ -24,6 +24,9 @@ services:
       NODE_ENV: development
       # Fixture data for manual testing: demo | empty | starter | regular | power
       MOCK_PERSONA: ${MOCK_PERSONA:-demo}
+      # Where user data lives: indexeddb (autonomous) | api | memory
+      NEXT_PUBLIC_DATA_SOURCE: ${NEXT_PUBLIC_DATA_SOURCE:-indexeddb}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
       # Arbitrary UIDs have no /etc/passwd entry, so point HOME at a directory
       # the image created for them (keeps the npm cache writable).
       HOME: /home/app

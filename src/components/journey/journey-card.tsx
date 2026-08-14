@@ -33,13 +33,13 @@ function levelLabel(level: JourneyLevel, labels: JourneyCardLabels): string {
 export interface JourneyCardProps {
   journey: JourneyView
   labels: JourneyCardLabels
-  /** Server action that enrols the user. */
-  action: (formData: FormData) => Promise<void>
+  /** Enrols the user; the data layer persists it. */
+  onStart: (journeyId: string) => void | Promise<void>
   /** Recommended cards get a brand outline so the section reads at a glance. */
   highlighted?: boolean
 }
 
-export function JourneyCard({ journey, labels, action, highlighted = false }: JourneyCardProps) {
+export function JourneyCard({ journey, labels, onStart, highlighted = false }: JourneyCardProps) {
   const started = journey.progress !== null
 
   return (
@@ -114,17 +114,15 @@ export function JourneyCard({ journey, labels, action, highlighted = false }: Jo
         </div>
       )}
 
-      <form action={action}>
-        <input type="hidden" name="journeyId" value={journey.id} />
-        <Button
-          type="submit"
-          variant={started ? 'ghost' : 'primary'}
-          size="sm"
-          className={cn('w-full', started && 'border border-sand-200 shadow-none')}
-        >
-          {started ? labels.continue : labels.start}
-        </Button>
-      </form>
+      <Button
+        type="button"
+        variant={started ? 'ghost' : 'primary'}
+        size="sm"
+        onClick={() => onStart(journey.id)}
+        className={cn('w-full', started && 'border border-sand-200 shadow-none')}
+      >
+        {started ? labels.continue : labels.start}
+      </Button>
     </article>
   )
 }

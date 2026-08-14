@@ -1,7 +1,6 @@
 import type { Metadata } from 'next'
 
-import { createHabitAction } from '@/app/actions'
-import { HabitForm } from '@/components/habits/habit-form'
+import { NewHabitForm } from '@/components/habits/new-habit-form'
 import { NewHabitIllustration } from '@/components/icons'
 import { SheetHeader } from '@/components/layout/sheet-header'
 import { weekdayInitials } from '@/lib/date'
@@ -21,8 +20,7 @@ export default async function NewHabitPage() {
 
       <NewHabitIllustration className="mx-auto h-32 w-40 animate-rise-in" />
 
-      <HabitForm
-        action={createHabitAction}
+      <NewHabitForm
         weekdayInitials={weekdayInitials(locale)}
         labels={{
           nameLabel: t.newHabit.nameLabel,
