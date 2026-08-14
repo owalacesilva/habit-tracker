@@ -99,6 +99,7 @@ Rules:
 
 ## 3. Auth
 
+- Auth applies to **API mode only** — see the data layer rules above.
 - `auth.config.ts` must stay **dependency-light**: no `node:crypto`, no DB drivers, no
   providers. `proxy.ts` imports it and may run outside the app runtime.
 - `auth.ts` holds providers and is imported from Node runtime only.
@@ -208,7 +209,32 @@ generous rounding.
 
 ---
 
-## 11. PWA
+## 11. Data layer
+
+- **All user data goes through `DataRepository`** (`src/lib/data`): habits and
+  completions, journey enrolment, notification preferences. A component must
+  never import an adapter — it reads and writes through `useHabits()`,
+  `useJourneyEnrollments()` and `useNotificationPreferences()`.
+- The app is **autonomous by default**: `NEXT_PUBLIC_DATA_SOURCE=indexeddb` keeps
+  everything in the browser, so it runs with no backend and works offline.
+  `api` swaps in the HTTP adapter; nothing else changes.
+- **Adding a method means adding it to every adapter**, and to the shared
+  contract suite in `src/lib/data/__tests__/contract.ts` — that suite is what
+  makes the environment variable safe to flip.
+- Every port method is **async**, even in the in-memory adapter, so a screen can
+  never accidentally depend on a synchronous read.
+- IndexedDB commits its transaction as soon as the microtask queue drains: issue
+  requests inside one `withStores` callback, never across an unrelated await.
+- **Local mode has no session.** `getSessionUser()` returns `null` and NextAuth is
+  not even imported; `proxy.ts` skips the gate. Never call `auth()` directly from
+  a page — a local deployment has no `AUTH_SECRET`.
+- What is _not_ user data stays where it was: the journey catalogue is editorial
+  content rendered on the server, and appearance settings stay in cookies because
+  the server needs them for the first paint.
+
+---
+
+## 12. PWA
 
 - `public/sw.js` is hand-written — no plugin. Bump `CACHE_VERSION` whenever the offline
   shell changes, otherwise clients keep the old cache.
@@ -221,7 +247,7 @@ generous rounding.
 
 ---
 
-## 12. Testing
+## 13. Testing
 
 - Jest + Testing Library, tests colocated in `__tests__/` next to the code.
 - Test **behaviour through the DOM** (roles, labels, text), not implementation details.
@@ -234,7 +260,7 @@ generous rounding.
 
 ---
 
-## 13. Git workflow
+## 14. Git workflow
 
 - **Conventional Commits** (`feat:`, `fix:`, `docs:`, `chore:` …) — enforced by commitlint.
 - Hooks (installed by `make install`, or explicitly with `make hooks`):
@@ -249,7 +275,7 @@ generous rounding.
 
 ---
 
-## 14. Definition of done
+## 15. Definition of done
 
 1. `make ci` passes (lint + typecheck + tests).
 2. New behaviour has tests.

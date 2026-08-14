@@ -40,13 +40,13 @@ function view(overrides: Partial<JourneyView> = {}): JourneyView {
   }
 }
 
-const action = jest.fn()
+const onStart = jest.fn()
 
 describe('JourneyCard', () => {
   beforeEach(() => jest.clearAllMocks())
 
   it('shows what the journey is and what it asks of you', () => {
-    render(<JourneyCard journey={view()} labels={labels} action={action} />)
+    render(<JourneyCard journey={view()} labels={labels} onStart={onStart} />)
 
     expect(screen.getByRole('heading', { name: 'Hydration Reset' })).toBeInTheDocument()
     expect(screen.getByText(/two weeks/i)).toBeInTheDocument()
@@ -56,7 +56,7 @@ describe('JourneyCard', () => {
   })
 
   it('invites you to start when you have not', () => {
-    render(<JourneyCard journey={view()} labels={labels} action={action} />)
+    render(<JourneyCard journey={view()} labels={labels} onStart={onStart} />)
 
     expect(screen.getByRole('button', { name: en.journey.start })).toBeInTheDocument()
     expect(screen.queryByRole('progressbar')).not.toBeInTheDocument()
@@ -67,7 +67,7 @@ describe('JourneyCard', () => {
       <JourneyCard
         journey={view({ progress: { day: 3, total: 14, percentage: 21 } })}
         labels={labels}
-        action={action}
+        onStart={onStart}
       />,
     )
 
@@ -76,17 +76,16 @@ describe('JourneyCard', () => {
     expect(screen.getByRole('progressbar')).toHaveAttribute('aria-valuenow', '21')
   })
 
-  it('carries the journey id to the action', async () => {
-    render(<JourneyCard journey={view()} labels={labels} action={action} />)
+  it('carries the journey id to the callback', async () => {
+    render(<JourneyCard journey={view()} labels={labels} onStart={onStart} />)
 
     await userEvent.click(screen.getByRole('button', { name: en.journey.start }))
 
-    expect(action).toHaveBeenCalled()
-    expect(action.mock.calls[0][0].get('journeyId')).toBe('hydration-reset')
+    expect(onStart).toHaveBeenCalledWith('hydration-reset')
   })
 
   it('badges a recommended journey', () => {
-    render(<JourneyCard journey={view({ recommended: true })} labels={labels} action={action} />)
+    render(<JourneyCard journey={view({ recommended: true })} labels={labels} onStart={onStart} />)
 
     expect(screen.getByText(en.journey.recommendedBadge)).toBeInTheDocument()
   })
@@ -101,7 +100,7 @@ describe('JourneyList', () => {
           view({ id: 'b', title: 'Ordinary one' }),
         ]}
         labels={labels}
-        action={action}
+        onStart={onStart}
       />,
     )
 
@@ -119,21 +118,21 @@ describe('JourneyList', () => {
 
   it('outlines the recommended cards so the difference is visible', () => {
     const { container } = render(
-      <JourneyList journeys={[view({ recommended: true })]} labels={labels} action={action} />,
+      <JourneyList journeys={[view({ recommended: true })]} labels={labels} onStart={onStart} />,
     )
 
     expect(container.querySelector('article')?.className).toContain('border-brand-300')
   })
 
   it('hides the recommended section when there is nothing to recommend', () => {
-    render(<JourneyList journeys={[view()]} labels={labels} action={action} />)
+    render(<JourneyList journeys={[view()]} labels={labels} onStart={onStart} />)
 
     expect(screen.queryByRole('region', { name: en.journey.recommendedTitle })).toBeNull()
     expect(screen.getByRole('region', { name: en.journey.allTitle })).toBeInTheDocument()
   })
 
   it('explains an empty catalogue', () => {
-    render(<JourneyList journeys={[]} labels={labels} action={action} />)
+    render(<JourneyList journeys={[]} labels={labels} onStart={onStart} />)
 
     expect(screen.getByText(en.journey.emptyTitle)).toBeInTheDocument()
     expect(screen.getByText(en.journey.emptyBody)).toBeInTheDocument()

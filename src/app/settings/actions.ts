@@ -3,7 +3,6 @@
 import { revalidatePath } from 'next/cache'
 import { cookies } from 'next/headers'
 
-import { requireUser } from '@/auth'
 import {
   parseWeekStart,
   REDUCE_MOTION_COOKIE,
@@ -11,12 +10,6 @@ import {
   type WeekStart,
 } from '@/lib/general-settings'
 import { LOCALE_COOKIE, type Locale, parseLocale } from '@/lib/i18n/config'
-import {
-  isNotificationType,
-  type NotificationPreferences,
-  setNotificationsEnabled,
-  setNotificationType,
-} from '@/lib/notifications'
 import { parseTheme, THEME_COOKIE, type Theme } from '@/lib/theme'
 
 /** A year, so a preference survives sessions; `lax` keeps it on same-site navigations. */
@@ -27,8 +20,10 @@ const COOKIE_OPTIONS = {
 } as const
 
 /**
- * Appearance, language and layout live in cookies (the server needs them to
- * render the first paint); notification preferences belong to the account.
+ * Appearance, language and layout live in cookies: the server needs them to
+ * render the first paint. Everything user-owned (habits, journeys, notification
+ * preferences) goes through `DataRepository` on the client instead.
+ *
  * Every action re-validates the layout so the whole app re-renders translated.
  */
 export async function setThemeAction(value: string): Promise<Theme> {
@@ -60,25 +55,4 @@ export async function setReduceMotionAction(enabled: boolean): Promise<boolean> 
   store.set(REDUCE_MOTION_COOKIE, enabled ? 'true' : 'false', COOKIE_OPTIONS)
   revalidatePath('/', 'layout')
   return enabled
-}
-
-export async function setNotificationsEnabledAction(
-  enabled: boolean,
-): Promise<NotificationPreferences> {
-  const user = await requireUser()
-  const preferences = setNotificationsEnabled(user.id, enabled)
-  revalidatePath('/settings')
-  return preferences
-}
-
-export async function setNotificationTypeAction(
-  type: string,
-  enabled: boolean,
-): Promise<NotificationPreferences> {
-  const user = await requireUser()
-  if (!isNotificationType(type)) throw new Error(`Unknown notification type: ${type}`)
-
-  const preferences = setNotificationType(user.id, type, enabled)
-  revalidatePath('/settings')
-  return preferences
 }

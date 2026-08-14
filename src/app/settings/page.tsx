@@ -2,27 +2,24 @@ import type { Metadata } from 'next'
 
 import {
   setLocaleAction,
-  setNotificationsEnabledAction,
-  setNotificationTypeAction,
   setReduceMotionAction,
   setThemeAction,
   setWeekStartAction,
 } from '@/app/settings/actions'
-import { requireUser } from '@/auth'
 import { SignOutButton } from '@/components/auth/sign-out-button'
 import { BellIcon, MailIcon, ShareIcon, StarIcon } from '@/components/icons'
 import { BottomNav } from '@/components/layout/bottom-nav'
 import { ScreenHeader } from '@/components/layout/screen-header'
 import { ChoiceGroup } from '@/components/settings/choice-group'
-import { NotificationSettings } from '@/components/settings/notification-settings'
+import { NotificationSection } from '@/components/settings/notification-section'
 import { PreferenceSwitch } from '@/components/settings/preference-switch'
 import { RateAppButton } from '@/components/settings/rate-app-button'
 import { SettingsRow, SettingsSection } from '@/components/settings/settings-section'
 import { ShareButton } from '@/components/ui/share-button'
 import { WEEK_STARTS, type WeekStart } from '@/lib/general-settings'
 import { LOCALE_LABELS, LOCALES, type Locale } from '@/lib/i18n/config'
-import { getNotificationPreferences } from '@/lib/notifications'
 import { getI18n, getScreenSettings } from '@/lib/server-settings'
+import { getSessionUser } from '@/lib/session'
 import { THEMES, type Theme } from '@/lib/theme'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -39,10 +36,9 @@ const THEME_ICONS: Record<Theme, string> = {
 
 export default async function SettingsPage() {
   const [user, { locale, t, theme, general }] = await Promise.all([
-    requireUser(),
+    getSessionUser(),
     getScreenSettings(),
   ])
-  const notifications = getNotificationPreferences(user.id)
 
   const storeUrl = process.env.NEXT_PUBLIC_APP_STORE_URL
   const feedbackEmail = process.env.NEXT_PUBLIC_FEEDBACK_EMAIL ?? 'feedback@habit.app'
@@ -91,10 +87,7 @@ export default async function SettingsPage() {
         </SettingsSection>
 
         <SettingsSection id="settings-notifications" title={t.settings.notifications.title}>
-          <NotificationSettings
-            preferences={notifications}
-            onToggleAll={setNotificationsEnabledAction}
-            onToggleType={setNotificationTypeAction}
+          <NotificationSection
             labels={{
               master: t.settings.notifications.master,
               description: t.settings.notifications.description,
@@ -196,11 +189,14 @@ export default async function SettingsPage() {
             }
           />
 
-          <SettingsRow
-            label={t.settings.general.signOut}
-            description={user.email ?? undefined}
-            control={<SignOutButton label={t.settings.general.signOut} />}
-          />
+          {/* Local mode has no session to end. */}
+          {user && (
+            <SettingsRow
+              label={t.settings.general.signOut}
+              description={user.email ?? undefined}
+              control={<SignOutButton label={t.settings.general.signOut} />}
+            />
+          )}
         </SettingsSection>
       </main>
 

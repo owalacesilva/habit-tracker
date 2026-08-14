@@ -2,13 +2,12 @@
 
 import { useActionState, useState } from 'react'
 import { useFormStatus } from 'react-dom'
-
-import type { HabitFormState } from '@/app/actions'
 import { CalendarIcon, ChevronDownIcon } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { CheckBox } from '@/components/ui/check-box'
 import { Switch } from '@/components/ui/switch'
 import { TextField } from '@/components/ui/text-field'
+import type { HabitFormState } from '@/lib/habit-form'
 import { format } from '@/lib/i18n'
 import { cn } from '@/lib/utils'
 

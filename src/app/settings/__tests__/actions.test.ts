@@ -3,15 +3,12 @@
  */
 import {
   setLocaleAction,
-  setNotificationsEnabledAction,
-  setNotificationTypeAction,
   setReduceMotionAction,
   setThemeAction,
   setWeekStartAction,
 } from '@/app/settings/actions'
 import { REDUCE_MOTION_COOKIE, WEEK_START_COOKIE } from '@/lib/general-settings'
 import { LOCALE_COOKIE } from '@/lib/i18n/config'
-import { __resetNotificationStore, getNotificationPreferences } from '@/lib/notifications'
 import { THEME_COOKIE } from '@/lib/theme'
 
 const cookieStore = { set: jest.fn(), get: jest.fn() }
@@ -20,15 +17,11 @@ jest.mock('next/headers', () => ({
   cookies: jest.fn(async () => cookieStore),
 }))
 jest.mock('next/cache', () => ({ revalidatePath: jest.fn() }))
-jest.mock('@/auth', () => ({
-  requireUser: jest.fn().mockResolvedValue({ id: 'test-user', name: 'Budi' }),
-}))
 
 const { revalidatePath } = jest.requireMock('next/cache')
 
 beforeEach(() => {
   jest.clearAllMocks()
-  __resetNotificationStore()
 })
 
 describe('appearance and layout preferences', () => {
@@ -72,33 +65,5 @@ describe('appearance and layout preferences', () => {
 
     await setReduceMotionAction(false)
     expect(cookieStore.set).toHaveBeenCalledWith(REDUCE_MOTION_COOKIE, 'false', expect.anything())
-  })
-})
-
-describe('notification preferences', () => {
-  it('stores the master switch against the signed-in user', async () => {
-    const preferences = await setNotificationsEnabledAction(false)
-
-    expect(preferences.enabled).toBe(false)
-    expect(getNotificationPreferences('test-user').enabled).toBe(false)
-    expect(revalidatePath).toHaveBeenCalledWith('/settings')
-  })
-
-  it('stores a single type without touching the others', async () => {
-    const preferences = await setNotificationTypeAction('weeklyReport', true)
-
-    expect(preferences.types.weeklyReport).toBe(true)
-    expect(preferences.types.dailyReminder).toBe(true)
-  })
-
-  it('rejects an unknown notification type', async () => {
-    await expect(setNotificationTypeAction('carrierPigeon', true)).rejects.toThrow(
-      /Unknown notification type/,
-    )
-  })
-
-  it('never writes preferences to a cookie', async () => {
-    await setNotificationsEnabledAction(true)
-    expect(cookieStore.set).not.toHaveBeenCalled()
   })
 })

@@ -2,7 +2,9 @@ import type { Metadata, Viewport } from 'next'
 import { Plus_Jakarta_Sans } from 'next/font/google'
 
 import { ServiceWorkerRegistration } from '@/components/pwa/service-worker-registration'
+import { DataProvider } from '@/lib/data/provider'
 import { getScreenSettings } from '@/lib/server-settings'
+import { getSessionUser } from '@/lib/session'
 import { themeAttribute } from '@/lib/theme'
 import './globals.css'
 
@@ -48,7 +50,10 @@ export const viewport: Viewport = {
 export default async function RootLayout({ children }: { children: React.ReactNode }) {
   // Read on the server so the first paint already uses the chosen theme and
   // language — a client-side read would flash the wrong one.
-  const { locale, theme, general } = await getScreenSettings()
+  const [{ locale, theme, general }, user] = await Promise.all([
+    getScreenSettings(),
+    getSessionUser(),
+  ])
 
   return (
     <html
@@ -58,7 +63,9 @@ export default async function RootLayout({ children }: { children: React.ReactNo
       className={sans.variable}
     >
       <body className="font-sans">
-        {children}
+        {/* Owns every read and write of user data. `null` means local mode,
+            where the provider resolves a device id on the client. */}
+        <DataProvider ownerId={user?.id ?? null}>{children}</DataProvider>
         <ServiceWorkerRegistration />
       </body>
     </html>

@@ -1,7 +1,9 @@
 import type { Metadata } from 'next'
+import { redirect } from 'next/navigation'
 
 import { loginAction } from '@/app/login/actions'
 import { LoginForm } from '@/components/auth/login-form'
+import { isLocalMode } from '@/lib/data/config'
 import { getI18n } from '@/lib/server-settings'
 
 export async function generateMetadata(): Promise<Metadata> {
@@ -10,6 +12,9 @@ export async function generateMetadata(): Promise<Metadata> {
 }
 
 export default async function LoginPage() {
+  // Nothing to sign in to when the data lives on the device.
+  if (isLocalMode()) redirect('/')
+
   const { t } = await getI18n()
   const demoEmail = process.env.DEMO_USER_EMAIL ?? 'demo@habit.app'
   const demoPassword = process.env.DEMO_USER_PASSWORD ?? 'demo1234'

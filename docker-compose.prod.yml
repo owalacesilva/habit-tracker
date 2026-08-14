@@ -13,6 +13,10 @@ services:
       target: runner
       args:
         AUTH_SECRET: ${AUTH_SECRET:-build-time-placeholder-secret}
+        # NEXT_PUBLIC_* values are inlined into the client bundle at build time,
+        # so switching data source needs a rebuild, not just a restart.
+        NEXT_PUBLIC_DATA_SOURCE: ${NEXT_PUBLIC_DATA_SOURCE:-indexeddb}
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
     image: habit-tracker:prod
     container_name: habit-tracker-prod
     restart: unless-stopped
@@ -22,6 +26,9 @@ services:
       NODE_ENV: production
       # Fixture data for manual testing: demo | empty | starter | regular | power
       MOCK_PERSONA: ${MOCK_PERSONA:-demo}
+      # Where user data lives: indexeddb (autonomous) | api | memory
+      NEXT_PUBLIC_DATA_SOURCE: ${NEXT_PUBLIC_DATA_SOURCE:-indexeddb}
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-}
       AUTH_TRUST_HOST: 'true'
     env_file:
       - path: .env.local
